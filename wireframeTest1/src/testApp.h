@@ -3,10 +3,13 @@
 #include "ofMain.h"
 #include <glm\glm.hpp>
 
+#include <string>
+
 #define uint unsigned int
 
 
 using namespace glm;
+using namespace std;
 
 typedef struct tcamera
 {
@@ -20,6 +23,8 @@ typedef struct tcamera
 class testApp : public ofBaseApp{
 
 	public:
+		testApp(uint pScreen_width, uint pScreen_height) 
+			: screen_width(pScreen_width), screen_height(pScreen_height) {};
 		void setup();
 		void update();
 		void draw();
@@ -33,6 +38,8 @@ class testApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
+		void saveFrame(string filename);
 
 private:
 	void generateGrid();
@@ -50,6 +57,8 @@ private:
 	uint z_res;
 	GLsizei num_elements;
 	unsigned long long last_time;
+	uint screen_width;
+	uint screen_height;
 
 	camera theCamera;
 };

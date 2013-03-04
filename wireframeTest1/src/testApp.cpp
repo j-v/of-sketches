@@ -172,6 +172,7 @@ void testApp::generateGrid()
 	delete[] g_element_buffer_data;
 }
 
+
 //--------------------------------------------------------------
 void testApp::setup(){
 	x_res = 200,
@@ -378,6 +379,8 @@ void testApp::draw(){
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 
+	if (key == (int)'d')
+		saveFrame("test.png");
 }
 
 //--------------------------------------------------------------
@@ -445,4 +448,24 @@ void testApp::look()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(value_ptr(m_v));
+}
+
+void testApp::saveFrame(string filename)
+{
+	ofImage img;
+	img.allocate(screen_width, screen_height, OF_IMAGE_COLOR);
+	unsigned char * temp_pixels = new unsigned char[screen_width * screen_height * 3];
+	unsigned char * pixels; // TODO initialize
+	glReadPixels(0, 0, screen_width, screen_height, GL_RGB, GL_UNSIGNED_BYTE, temp_pixels);
+	pixels = img.getPixels();
+	uint num_bytes = screen_width * screen_height * 3;
+	for (int i=num_bytes-1; i >= 0; i--)
+	{
+		pixels[num_bytes-i-1] = temp_pixels[i];
+	}
+	
+
+	img.saveImage(filename);
+
+	delete[] temp_pixels;
 }
