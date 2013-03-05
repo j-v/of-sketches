@@ -197,7 +197,7 @@ void testApp::setup(){
 	shader.begin();
 	GLfloat proj_mat[16], mv_mat[16];
 	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
-	update_p_matrix(proj_mat, 1024, 768);
+	update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
 	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
@@ -226,7 +226,7 @@ void testApp::setup(){
 
 		//GLfloat proj_mat[16], mv_mat[16];
 	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
-	update_p_matrix(proj_mat, 1024, 768);
+	update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
 	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
@@ -258,13 +258,12 @@ void testApp::draw(){
 	if (!mat_init)
 	{
 		// not sure why this part is necessary as we init'd proj and mv matrices in setup()
-		update_p_matrix(proj_mat, 1024, 768);
+		update_p_matrix(proj_mat, screen_width, screen_height);
 		update_mv_matrix(mv_mat, 0);
 		mat_init = true;
 	}
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_mat);
-
 	glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
 	/*glLoadMatrixf(mv_mat);*/
@@ -380,7 +379,12 @@ void testApp::draw(){
 void testApp::keyPressed(int key){
 
 	if (key == (int)'d')
+	{
+		// current problem: frames won't be the same b/c of time difference
 		saveFrame("test.png");
+		float k = 5.0; // 10 is too big
+		saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+	}
 }
 
 //--------------------------------------------------------------
@@ -458,14 +462,73 @@ void testApp::saveFrame(string filename)
 	unsigned char * pixels; // TODO initialize
 	glReadPixels(0, 0, screen_width, screen_height, GL_RGB, GL_UNSIGNED_BYTE, temp_pixels);
 	pixels = img.getPixels();
-	uint num_bytes = screen_width * screen_height * 3;
+	/*uint num_bytes = screen_width * screen_height * 3;
 	for (int i=num_bytes-1; i >= 0; i--)
 	{
 		pixels[num_bytes-i-1] = temp_pixels[i];
+	}*/
+	for (int i = 0; i < screen_height; i++)
+	{
+		for (int j = 0; j < screen_width; j++)
+		{
+			int src_index = i * screen_width * 3 + j * 3;
+			int dest_index = (screen_height - i - 1) * screen_width * 3 + j * 3;
+			for (int k = 0; k < 3; k++)
+			{
+				pixels[dest_index + k] = temp_pixels[src_index + k];
+			}
+		}
 	}
-	
 
 	img.saveImage(filename);
 
 	delete[] temp_pixels;
+}
+
+void testApp::saveFrame(string filename, int width, int height)
+{
+	ofFbo fbo;
+	fbo.allocate(width, height);
+	fbo.begin();
+
+	// set projection matrix
+	glMatrixMode(GL_PROJECTION);
+	update_p_matrix(proj_mat, width, height);
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
+
+	draw();
+
+	ofImage img;
+	img.allocate(width, height, OF_IMAGE_COLOR);
+	unsigned char * temp_pixels = new unsigned char[width * height * 3];
+	unsigned char * pixels; // TODO initialize
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, temp_pixels);
+	pixels = img.getPixels();
+
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			int src_index = i * width * 3 + j * 3;
+			int dest_index = (height - i - 1) * width * 3 + j * 3;
+			for (int k = 0; k < 3; k++)
+			{
+				pixels[dest_index + k] = temp_pixels[src_index + k];
+			}
+		}
+	}
+
+	img.saveImage(filename);
+
+	delete[] temp_pixels;
+	
+
+	fbo.end();
+
+	// reset modelview matrix
+	update_p_matrix(proj_mat, screen_width, screen_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
 }

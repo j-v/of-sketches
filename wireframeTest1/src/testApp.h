@@ -40,6 +40,7 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		void saveFrame(string filename);
+		void saveFrame(string filename, int width, int height);
 
 private:
 	void generateGrid();
