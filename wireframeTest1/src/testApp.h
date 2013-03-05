@@ -42,15 +42,28 @@ class testApp : public ofBaseApp{
 		void saveFrame(string filename);
 		void saveFrame(string filename, int width, int height);
 
+		void saveSVG(string filename);
+		
+
 private:
 	void generateGrid();
+	void bufferGrid();
 	void look();
+
+	bool move_camera;
+
+
+	GLfloat *g_vertex_buffer_data;
+	GLushort *g_element_buffer_data;
+	uint e_buffer_size;
+	uint v_buffer_size;
 
 	GLuint vertexBuffer;
 	GLuint elementBuffer;	
 	ofShader shader;
 	GLint vert_3d_attrib;
 	GLint proj_mat_attrib;
+	GLint offset_attrib;
 	GLfloat proj_mat[16];
 	GLfloat mv_mat[16];
 

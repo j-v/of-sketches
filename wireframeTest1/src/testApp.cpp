@@ -1,13 +1,15 @@
 
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
+//#define _CRTDBG_MAP_ALLOC
+//#include <stdlib.h>
+//#include <crtdbg.h>
 
 #include "testApp.h"
 
 #include <cstdlib>
 #include <glm/gtc/type_ptr.hpp>
+#include <sstream>
 
+#include "..\..\..\..\gl2ps-1.3.8-source\gl2ps.h"
 
 #define PI_OVER_360 0.00872664625997164788461845384244
 
@@ -121,12 +123,17 @@ static void update_mv_matrix(GLfloat *matrix, GLfloat eye_offset)
 
 void testApp::generateGrid()
 {
+	if (g_vertex_buffer_data != NULL)
+		delete[] g_vertex_buffer_data;
+	if (g_element_buffer_data != NULL)
+		delete[] g_element_buffer_data;
+
 	// SQUARE GRID centered at 0, side length = 1
 	// vertex buffer
 	float x_step = 1.0 / (float)(x_res - 1);
 	float z_step = 1.0 / (float)(z_res - 1);
-	uint v_buffer_size = x_res * z_res * 3;
-	GLfloat *g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3
+	v_buffer_size = x_res * z_res * 3;
+	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3
 	for (uint i = 0; i < x_res; i++) 
 		for (uint j = 0; j < z_res; j++) {
 			uint base_index = (i*3) + 3*j*x_res;
@@ -136,8 +143,8 @@ void testApp::generateGrid()
 			g_vertex_buffer_data[base_index + 2] = -0.5 + j * z_step;
 		}
 	// element buffer - GL_QUADS
-	uint e_buffer_size = (x_res-1) * (z_res-1) * 4;
-	GLushort *g_element_buffer_data = new GLushort[e_buffer_size];
+	e_buffer_size = (x_res-1) * (z_res-1) * 4;
+	g_element_buffer_data = new GLushort[e_buffer_size];
 	for (uint i = 0; i < x_res-1; i++) 
 		for (uint j = 0; j < z_res-1; j++) {
 			uint base_index = (i*4) + 4*j*(x_res-1);
@@ -159,6 +166,13 @@ void testApp::generateGrid()
         g_element_buffer_data,
 		sizeof(GLushort) * e_buffer_size
     );*/
+
+
+
+}
+
+void testApp::bufferGrid()
+{
 	buffer_data(vertexBuffer, 
 		GL_ARRAY_BUFFER, 
 		g_vertex_buffer_data, 
@@ -167,14 +181,14 @@ void testApp::generateGrid()
 		GL_ELEMENT_ARRAY_BUFFER, 
 		g_element_buffer_data, 
 		sizeof(GLushort) * e_buffer_size);
-
-	delete[] g_vertex_buffer_data;
-	delete[] g_element_buffer_data;
 }
-
 
 //--------------------------------------------------------------
 void testApp::setup(){
+	g_element_buffer_data = NULL;
+	g_vertex_buffer_data = NULL;
+
+	move_camera = false;
 	x_res = 200,
 		z_res = 200; // number of *vertices* on x & z axis
 
@@ -193,11 +207,15 @@ void testApp::setup(){
 	shader.load("vertex.glsl", "fragment.glsl");
 	vert_3d_attrib = shader.getAttributeLocation("position");
 	proj_mat_attrib = shader.getAttributeLocation("u_proj_matrix");
+	offset_attrib = shader.getAttributeLocation("u_offset");
+	shader.setUniform2f("u_offset", 0.0,0.0);
+	
 	//shader.setUniformMatrix4f("projectionMatrix", projMatrix);
 	shader.begin();
-	GLfloat proj_mat[16], mv_mat[16];
+	shader.setUniform1f("u_scale", 1.0);
+	//GLfloat proj_mat[16], mv_mat[16];
 	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
-	update_p_matrix(proj_mat, screen_width, screen_height);
+	//update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
 	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
@@ -222,18 +240,9 @@ void testApp::setup(){
 	glGenBuffers(1, &vertexBuffer);
 	glGenBuffers(1, &elementBuffer);
 
-	generateGrid();
+	//generateGrid();
 
-		//GLfloat proj_mat[16], mv_mat[16];
-	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
-	update_p_matrix(proj_mat, screen_width, screen_height);
-	update_mv_matrix(mv_mat, 0);
-	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
-	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(proj_mat);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(mv_mat);
+
 	
 	// projection matrix
 	//glMatrixMode(GL_PROJECTION);
@@ -247,63 +256,57 @@ void testApp::setup(){
 
 //--------------------------------------------------------------
 void testApp::update(){
+	unsigned long long cur_time = ofGetSystemTime();
+	generateGrid();
+	//rotate and zoom camera
+	double tick_double = double(cur_time % 2000)/2000;
+	
+	double scale = abs(tick_double - 0.5) * 3;
+	if (move_camera)
+	{
+		theCamera.position.x = cos(tick_double * 2 * PI) * scale;
+		theCamera.position.y = 0.35f;
+		theCamera.position.z = sin(tick_double * 2 * PI) * scale ;
+	}
+	else
+	{
+		theCamera.position.x = 0;
+		theCamera.position.y = 0.35f;
+		theCamera.position.z = -1.1f ;
+	}
+
+	theCamera.target.x = 0;
+	theCamera.target.y = 0;
+	theCamera.target.z = 0;
+	theCamera.roll = 0.0;
 
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
 	unsigned long long cur_time = ofGetSystemTime();
-	generateGrid();
+	bufferGrid();
 	static bool mat_init = false;
-	if (!mat_init)
-	{
+	/*if (!mat_init)
+	{*/
 		// not sure why this part is necessary as we init'd proj and mv matrices in setup()
 		update_p_matrix(proj_mat, screen_width, screen_height);
 		update_mv_matrix(mv_mat, 0);
 		mat_init = true;
-	}
+	//}
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
 	/*glLoadMatrixf(mv_mat);*/
-	double tick_double = double(cur_time % 2000)/2000;
+
+
 	
-	double scale = abs(tick_double - 0.5) * 3;
-	theCamera.position.x = cos(tick_double * 2 * PI) * scale;
-	theCamera.position.y = 0.35f;
-	//theCamera.position.z = -1.1f ;
-	theCamera.position.z = sin(tick_double * 2 * PI) * scale ;
-	theCamera.target.x = 0;
-	theCamera.target.y = 0;
-	theCamera.target.z = 0;
-	theCamera.roll = 0.0;
 	look();
 	
-		//0.0f, 0.35f, -1.1f
+
 	//shader.begin();
-
-	//// ZED
-	//glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	//glVertexAttribPointer(
- //       vert_3d_attrib,  /* attribute */
- //       3,                                /* size */
- //       GL_FLOAT,                         /* type */
- //       GL_FALSE,                         /* normalized? */
- //       sizeof(GLfloat)*3,                /* stride */
- //       (void*)0                          /* array buffer offset */
- //   );
- //   glEnableVertexAttribArray(vert_3d_attrib);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
- //   glDrawElements(
- //       //GL_TRIANGLE_STRIP,  /* mode */
-	//	GL_LINE_STRIP,
- //       4,                  /* count */
- //       GL_UNSIGNED_SHORT,  /* type */
- //       (void*)0            /* element array buffer offset */
- //   );
-	//glDisableVertexAttribArray(vert_3d_attrib);
-
+	
 	// QUADS
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -377,13 +380,59 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-
+	static float offset = 0;
+	static int viewportx = 0;
 	if (key == (int)'d')
 	{
 		// current problem: frames won't be the same b/c of time difference
-		saveFrame("test.png");
-		float k = 5.0; // 10 is too big
-		saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+			
+		// set scaling uniform value
+		shader.setUniform1f("u_scale", 2.0);
+
+		for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
+		{
+			//shader.end();
+			shader.setUniform2f("u_offset",i,0);
+			//shader.begin();
+			
+			stringstream ss;
+			ss << i;
+			saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
+			//shader.end();
+		}
+		shader.setUniform2f("u_offset",0,0);
+		shader.setUniform1f("u_scale", 1.0);
+		//shader.begin();
+		float k = 5.0; // 5, 10 is too big
+		//saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+	}
+	else if (key == (int)'s')
+	{
+		//saveSVG("test.svg");
+	}
+	else if (key == (int)'=')
+	{
+		offset += 0.5;
+		shader.setUniform2f("u_offset",offset,0);
+	}
+	else if (key == (int)'-')
+	{
+		offset -= 0.5	;
+		shader.setUniform2f("u_offset",offset,0);
+	}
+	else if (key == (int)'[')
+	{
+		viewportx -= 20;
+		glViewport(viewportx, 0, screen_width, screen_height);
+	}
+	else if (key == (int)']')
+	{
+		viewportx += 20;
+		glViewport(viewportx, 0, screen_width, screen_height);
+	}
+	else if (key == (int)'c')
+	{
+		move_camera = !move_camera;
 	}
 }
 
@@ -487,10 +536,13 @@ void testApp::saveFrame(string filename)
 
 void testApp::saveFrame(string filename, int width, int height)
 {
+	//GLint dims[2];
+	//glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
+
 	ofFbo fbo;
 	fbo.allocate(width, height);
 	fbo.begin();
-
+	
 	// set projection matrix
 	glMatrixMode(GL_PROJECTION);
 	update_p_matrix(proj_mat, width, height);
@@ -501,27 +553,30 @@ void testApp::saveFrame(string filename, int width, int height)
 
 	ofImage img;
 	img.allocate(width, height, OF_IMAGE_COLOR);
-	unsigned char * temp_pixels = new unsigned char[width * height * 3];
-	unsigned char * pixels; // TODO initialize
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, temp_pixels);
+	//unsigned char * temp_pixels = new unsigned char[width * height * 3];
+	unsigned char * pixels; 
 	pixels = img.getPixels();
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	
 
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			int src_index = i * width * 3 + j * 3;
-			int dest_index = (height - i - 1) * width * 3 + j * 3;
-			for (int k = 0; k < 3; k++)
-			{
-				pixels[dest_index + k] = temp_pixels[src_index + k];
-			}
-		}
-	}
+	// TODO replace with img.mirror()
+	img.mirror(true,false);
+	//for (int i = 0; i < height; i++)
+	//{
+	//	for (int j = 0; j < width; j++)
+	//	{
+	//		int src_index = i * width * 3 + j * 3;
+	//		int dest_index = (height - i - 1) * width * 3 + j * 3;
+	//		for (int k = 0; k < 3; k++)
+	//		{
+	//			pixels[dest_index + k] = temp_pixels[src_index + k];
+	//		}
+	//	}
+	//}
 
 	img.saveImage(filename);
 
-	delete[] temp_pixels;
+	//delete[] temp_pixels;
 	
 
 	fbo.end();
@@ -531,4 +586,22 @@ void testApp::saveFrame(string filename, int width, int height)
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
+}
+
+void testApp::saveSVG(string filename)
+{
+	FILE * fp;
+	const char * filename_c = filename.c_str();
+	fp = fopen(filename_c, "wb");
+	int state = GL2PS_OVERFLOW, buffsize = 0;
+	while(state == GL2PS_OVERFLOW){
+      buffsize += 1024*1024;
+	  gl2psBeginPage("test","jon",NULL, GL2PS_SVG, GL2PS_SIMPLE_SORT, 
+				   GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
+                   GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, filename_c);
+	  draw();
+	  glFlush();
+	  state = gl2psEndPage();
+	}
+	fclose(fp);
 }
