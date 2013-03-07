@@ -7,7 +7,8 @@ uniform vec2 u_offset;
 uniform float u_scale;
 
 attribute vec3 position;
-varying lowp vec4 ex_Color;
+//varying lowp vec4 ex_Color;
+varying vec4 ex_Color;
 
 void main()
 {

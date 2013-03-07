@@ -195,14 +195,14 @@ void testApp::setup(){
 	last_time = 0;
 	//glEnable( GL_DEPTH_TEST );
 	glEnable( GL_BLEND );
-	glEnable( GL_COLOR_MATERIAL );
-	glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-	glBlendEquation( GL_FUNC_ADD );
+	//glEnable( GL_COLOR_MATERIAL );
+	//glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+	//glBlendEquation( GL_FUNC_ADD );
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
 
-	ofBackground(0,0,0);
+	ofBackground(0,0,0,0);
 
 	shader.load("vertex.glsl", "fragment.glsl");
 	vert_3d_attrib = shader.getAttributeLocation("position");
@@ -284,6 +284,8 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	glClearColor(0,0,0,0);
+
 	unsigned long long cur_time = ofGetSystemTime();
 	bufferGrid();
 	static bool mat_init = false;
@@ -308,8 +310,8 @@ void testApp::draw(){
 	//shader.begin();
 	
 	// QUADS
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
+	//glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	//// use custom attribute
 	//glVertexAttribPointer(
  //       vert_3d_attrib,  /* attribute */
