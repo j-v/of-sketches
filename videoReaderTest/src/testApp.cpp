@@ -6,9 +6,11 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
+	// TODO: test maximum length (frames) and resolution of videos
+
 	// read video
 	ofVideoPlayer player;
-	string filename = "fingers.mov";
+	string filename = "test.mov";
 	player.loadMovie(filename);
 
 	player.firstFrame();
@@ -24,7 +26,7 @@ void testApp::setup(){
 	vds.width = width;
 	vds.height = height;
 	vds.frames = player.getTotalNumFrames();
-	vds.data = new float[width * height * player.getTotalNumFrames()];
+	vds.data = new float[width * height * (player.getTotalNumFrames()+1)];
 	
 	int vds_index = 0;
 	float max = sqrt((255.0*255.0) *3); // Maximum intensity value
@@ -50,7 +52,7 @@ void testApp::setup(){
 
 				vds_index++;
 			}
-
+			
 
 		player.nextFrame();
 	}
@@ -77,7 +79,7 @@ void testApp::draw(){
 		unsigned char * pixels = new unsigned char[vds.height * vds.width];
 		for (int i = 0; i < vds.height * vds.width; i++)
 		{
-			pixels[i] = ((vds.data[offset + i] + 1.0) / 0.5) * 255 ;				
+			pixels[i] = ((vds.data[offset + i] + 1.0) / 2.0) * 255 ;				
 		}
 		frame_img.setFromPixels(pixels, vds.width, vds.height, OF_IMAGE_GRAYSCALE);
 		delete[] pixels;
