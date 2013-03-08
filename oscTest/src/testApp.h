@@ -5,7 +5,7 @@
 
 // listen on port 12345
 #define PORT 12345
-#define NUM_MSG_STRINGS 20 // what is this?
+#define NUM_MSG_STRINGS 20 
 
 class testApp : public ofBaseApp{
 
@@ -25,4 +25,9 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 		ofxOscReceiver oscReceiver;
+
+private:
+	string msgStrings[NUM_MSG_STRINGS];
+	int curMsgPos;
+	int numMsgs;
 };

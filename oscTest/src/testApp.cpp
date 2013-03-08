@@ -9,6 +9,9 @@ void testApp::setup(){
 	oscReceiver.setup(PORT);
 
 	ofBackground(0, 40, 150);
+
+	curMsgPos = 0;
+	numMsgs = 0;
 }
 
 //--------------------------------------------------------------
@@ -22,7 +25,7 @@ void testApp::update(){
 
 		stringstream display_msg;
 		string msg_address = msg.getAddress();
-		display_msg << msg_address << ": ";
+		display_msg << numMsgs << ". " << msg_address << ": ";
 
 		for(int i = 0; i < msg.getNumArgs(); i++){
 			ofxOscArgType arg_type = msg.getArgType(i);
@@ -46,12 +49,25 @@ void testApp::update(){
 
 		cout << display_msg.str() << endl;
 
+		msgStrings[curMsgPos] = display_msg.str();
+		curMsgPos++;
+		numMsgs++;
+		if (curMsgPos >= NUM_MSG_STRINGS)
+			curMsgPos = 0;
+
+
 	}
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	string buf;
+	buf = "Listening for OSC messages on port " + ofToString(PORT);
+	ofDrawBitmapString(buf, 10, 20);
 
+	for(int i = 0; i < NUM_MSG_STRINGS; i++){
+		ofDrawBitmapString(msgStrings[i], 10, 40 + 15 * i);
+	}
 }
 
 //--------------------------------------------------------------
