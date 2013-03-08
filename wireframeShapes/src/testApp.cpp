@@ -109,22 +109,6 @@ void testApp::generateSphere()
 	// generate element buffer - GL_QUADS
 	e_buffer_size = (x_res) * (z_res-1) * 4;
 	g_element_buffer_data = new GLushort[e_buffer_size];
-	//for (uint i = 0; i < x_res-1; i++) 
-	//for (uint j = 0; j < z_res-1; j++) {
-	//	uint base_index = (i*4) + 4*j*(x_res-1);
-	//	g_element_buffer_data[base_index] = i + j*x_res;
-	//	g_element_buffer_data[base_index+1] = (i+1) + j*x_res;
-	//	g_element_buffer_data[base_index+2] = (i+1) + (j+1)*x_res;
-	//	g_element_buffer_data[base_index+3] = i + (j+1)*x_res;
-	//}
-	//for (uint i = 0; i < x_res; i++) 
-	//	for (uint j = 0; j < z_res-1; j++) {
-	//		uint base_index = (i*4) + 4*j*(x_res-1);
-	//		g_element_buffer_data[base_index] = (i + (j*x_res)) ;
-	//		g_element_buffer_data[base_index+1] = ((i+1)%z_res + j*x_res) ;
-	//		g_element_buffer_data[base_index+2] = ((i+1)%z_res + ((j+1)%x_res)*x_res) ;
-	//		g_element_buffer_data[base_index+3] = (i + (((j+1)%x_res)*x_res));
-	//	}
 
 	for (uint i = 0; i < z_res-1; i++) 
 		for (uint j = 0; j < x_res; j++) {
@@ -139,12 +123,90 @@ void testApp::generateSphere()
 
 void testApp::generateCylinderX()
 {
-	// TODO
+	// z_res: number of circle slices (x makes more sense than z here)
+	// x_res: number of points on every circle slice
+	float r = 0.5f;
+	float z_step = (r*2.0) / (z_res-1);
+
+	v_buffer_size = x_res * z_res * 3;
+	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3?
+
+	// generate vertex buffer
+	for (int i=0; i< z_res; i++)
+	{
+		float x = z_step * i - r;
+		for (int j = 0; j < x_res; j++)
+		{
+			float theta = PI * 2 * ( (float)j / ((float) x_res ) );
+			float y = cos(theta) * r;
+			float z = sin(theta) * r;
+
+			//uint base_index = (i*3) + 3*j*x_res;
+			//uint base_index = (j*3) + 3*i*z_res;
+			uint base_index = (i*3)*x_res + 3*j;
+
+			g_vertex_buffer_data[base_index] = x;
+			g_vertex_buffer_data[base_index + 1] = y;
+			g_vertex_buffer_data[base_index + 2] = z;
+		}
+	}
+	
+	// generate element buffer - GL_QUADS
+	e_buffer_size = (x_res) * (z_res-1) * 4;
+	g_element_buffer_data = new GLushort[e_buffer_size];
+
+	for (uint i = 0; i < z_res-1; i++) 
+		for (uint j = 0; j < x_res; j++) {
+			uint base_index = i*4*x_res + 4*j;
+			g_element_buffer_data[base_index] = i*x_res + j;
+			g_element_buffer_data[base_index+1] = (i+1)*x_res + j;
+			g_element_buffer_data[base_index+2] = (i+1)*x_res + (j+1)%x_res;
+			g_element_buffer_data[base_index+3] = i*x_res + (j+1)%x_res;
+		}
 }
 
 void testApp::generateCylinderY() 
 {
-	// TODO
+	// z_res: number of circle slices (y makes more sense than z here)
+	// x_res: number of points on every circle slice
+	float r = 0.5f;
+	float z_step = (r*2.0) / (z_res-1);
+
+	v_buffer_size = x_res * z_res * 3;
+	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3?
+
+	// generate vertex buffer
+	for (int i=0; i< z_res; i++)
+	{
+		float y = z_step * i - r;
+		for (int j = 0; j < x_res; j++)
+		{
+			float theta = PI * 2 * ( (float)j / ((float) x_res ) );
+			float x = cos(theta) * r;
+			float z = sin(theta) * r;
+
+			//uint base_index = (i*3) + 3*j*x_res;
+			//uint base_index = (j*3) + 3*i*z_res;
+			uint base_index = (i*3)*x_res + 3*j;
+
+			g_vertex_buffer_data[base_index] = x;
+			g_vertex_buffer_data[base_index + 1] = y;
+			g_vertex_buffer_data[base_index + 2] = z;
+		}
+	}
+	
+	// generate element buffer - GL_QUADS
+	e_buffer_size = (x_res) * (z_res-1) * 4;
+	g_element_buffer_data = new GLushort[e_buffer_size];
+
+	for (uint i = 0; i < z_res-1; i++) 
+		for (uint j = 0; j < x_res; j++) {
+			uint base_index = i*4*x_res + 4*j;
+			g_element_buffer_data[base_index] = i*x_res + j;
+			g_element_buffer_data[base_index+1] = (i+1)*x_res + j;
+			g_element_buffer_data[base_index+2] = (i+1)*x_res + (j+1)%x_res;
+			g_element_buffer_data[base_index+3] = i*x_res + (j+1)%x_res;
+		}
 }
 
 void testApp::generateGrid()
@@ -164,10 +226,10 @@ void testApp::generateGrid()
 		generateSphere();
 		break;
 	case SHAPE_CYLINDER_X:
-		// TODO
+		generateCylinderX();
 		break;
 	case SHAPE_CYLINDER_Y:
-		// TODO
+		generateCylinderY();
 		break;
 	default:
 		cout << "ERROR: Invalid shape" << endl;
@@ -336,13 +398,23 @@ void testApp::keyPressed(int key){
 	if (key == (int)'q')
 	{
 		x_res /= 2;
-		z_res /= 2;
 		generateGrid();
 		bufferGrid();
 	}
 	else if (key == (int)'w')
 	{
 		x_res *= 2;
+		generateGrid();
+		bufferGrid();
+	}
+	else if (key == (int)'a')
+	{
+		z_res /= 2;
+		generateGrid();
+		bufferGrid();
+	}
+	else if (key == (int)'s')
+	{
 		z_res *= 2;
 		generateGrid();
 		bufferGrid();
@@ -360,6 +432,18 @@ void testApp::keyPressed(int key){
 	else if (key == (int)'2')
 	{
 		shape = SHAPE_SPHERE;
+		generateGrid();
+		bufferGrid();
+	}
+	else if (key == (int)'3')
+	{
+		shape = SHAPE_CYLINDER_X;
+		generateGrid();
+		bufferGrid();
+	}
+	else if (key == (int)'4')
+	{
+		shape = SHAPE_CYLINDER_Y;
 		generateGrid();
 		bufferGrid();
 	}
