@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
 #include <string>
 

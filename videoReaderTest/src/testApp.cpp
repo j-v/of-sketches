@@ -35,7 +35,9 @@ void testApp::setup(){
 	//float mid = (max + min) / 2.0;
 
 
-	while (!player.getIsMovieDone())
+	/*while (!player.getIsMovieDone())
+	{*/
+	for (int f=0; f < vds.frames; f++) 
 	{
 		unsigned char * pixels = player.getPixels();
 
