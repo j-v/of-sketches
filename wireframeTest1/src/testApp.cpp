@@ -383,29 +383,65 @@ void testApp::draw(){
 void testApp::keyPressed(int key){
 	static float offset = 0;
 	static int viewportx = 0;
+	static float im_save_scale = 1.0;
+	static float line_width = 1.0;
+
 	if (key == (int)'d')
 	{
-		// current problem: frames won't be the same b/c of time difference
-			
-		// set scaling uniform value
-		shader.setUniform1f("u_scale", 2.0);
+		stringstream ss;
+		ss << im_save_scale;
+		saveFrame("test" + ss.str() + ".png", screen_width * im_save_scale, screen_height * im_save_scale);
+		//// current problem: frames won't be the same b/c of time difference
+		//	
+		//// set scaling uniform value
+		//shader.setUniform1f("u_scale", 2.0);
 
-		for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
-		{
-			//shader.end();
-			shader.setUniform2f("u_offset",i,0);
-			//shader.begin();
-			
-			stringstream ss;
-			ss << i;
-			saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
-			//shader.end();
-		}
-		shader.setUniform2f("u_offset",0,0);
-		shader.setUniform1f("u_scale", 1.0);
-		//shader.begin();
-		float k = 5.0; // 5, 10 is too big
-		//saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+		//for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
+		//{
+		//	//shader.end();
+		//	shader.setUniform2f("u_offset",i,0);
+		//	//shader.begin();
+		//	
+		//	stringstream ss;
+		//	ss << i;
+		//	saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
+		//	//shader.end();
+		//}
+		//shader.setUniform2f("u_offset",0,0);
+		//shader.setUniform1f("u_scale", 1.0);
+		////shader.begin();
+		//float k = 5.0; // 5, 10 is too big
+		////saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+	}
+	else if (key == (int)'q')
+	{
+		im_save_scale /= 2;
+		cout << "im_save_scale: " << im_save_scale << endl;
+	}
+	else if (key == (int)'w')
+	{
+		im_save_scale *= 2;
+		cout << "im_save_scale: " << im_save_scale << endl;
+	}
+	else if (key == (int)'x')
+	{
+		line_width *= 2;
+		glLineWidth(line_width);
+	}
+	else if (key == (int)'z')
+	{
+		line_width /= 2;
+		glLineWidth(line_width);
+	}
+	else if (key == (int)'=')
+	{
+		x_res *= 2;
+		z_res *= 2;
+	}
+	else if (key == (int)'-')
+	{
+		x_res /= 2;
+		z_res /= 2;
 	}
 	else if (key == (int)'s')
 	{
@@ -537,31 +573,141 @@ void testApp::saveFrame(string filename)
 
 void testApp::saveFrame(string filename, int width, int height)
 {
+	//// Save directoy to ofImage -- DOESN'T WORK
+	//ofImage img;
+	//img.allocate(width, height, OF_IMAGE_COLOR);
+
+	//img.bind();
+	//draw();
+	//img.unbind();
+	//img.update();
+	//img.saveImage(filename);
+
+	//// Check max viewport dimensions - don't know how useful this is
 	//GLint dims[2];
 	//glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
 
-	ofFbo fbo;
-	fbo.allocate(width, height);
-	fbo.begin();
+	//// set scaling uniform value
+	//shader.setUniform1f("u_scale", 2.0);
+
+	//for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
+	//{
+	//	//shader.end();
+	//	shader.setUniform2f("u_offset",i,0);
+	//	//shader.begin();
+	//	
+	//	stringstream ss;
+	//	ss << i;
+	//	saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
+	//	//shader.end();
+	//}
+	//shader.setUniform2f("u_offset",0,0);
+	//shader.setUniform1f("u_scale", 1.0);
+
+	int MAX_FBO_WIDTH = 500;
+	int MAX_FBO_HEIGHT = 500;
+
+	ofImage output_img;
+	output_img.allocate(width, height, OF_IMAGE_COLOR);
+
+	// set the scale -- assume we kept width/height ratio with the screen
+	float ratio = (float)width / (float)screen_width;
+
+	double offset_ratio_x = 2.0 / (double)screen_width;
+	double offset_ratio_y = 2.0 / (double)screen_height;
 	
+	shader.setUniform1f("u_scale", ratio);
+
 	// set projection matrix
 	glMatrixMode(GL_PROJECTION);
 	update_p_matrix(proj_mat, width, height);
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
 
-	draw();
+	ofFbo fbo;
+	fbo.allocate(screen_width, screen_height); // todo
 
-	ofImage img;
-	img.allocate(width, height, OF_IMAGE_COLOR);
+	float x =0;
+	while (x < width)
+	{
+		float y = 0;
+		while (y < height)
+		{
+			// set the offset
+			shader.setUniform2f("u_offset",
+				(x - floorf(width /2.0)) * -offset_ratio_x - 1.0,
+				(y - floorf(height/2.0)) * -offset_ratio_y - 1.0 );
+			
+			// draw to fbo
+			fbo.begin();
+			glClearColor(0,0,0,1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			draw();
+
+			// get pixels
+			ofImage img_part;
+			int fbo_width = std::min((int)(width - x), MAX_FBO_WIDTH);
+			int fbo_height = std::min((int)(height - y), MAX_FBO_WIDTH);
+
+			img_part.allocate(fbo_width, fbo_height, OF_IMAGE_COLOR);
+			unsigned char * pixels = img_part.getPixels();
+			glReadPixels(0, MAX_FBO_HEIGHT-fbo_height, fbo_width, fbo_height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			img_part.mirror(true, false);
+			img_part.saveImage("part.png");
+
+			// end fbo
+			fbo.end();
+
+			// draw to output_image
+			/*output_img.bind();
+			img_part.draw( (int)(x + floorf(width/2)), (int)(y + floorf(width/2)) );
+			output_img.unbind();*/
+			for (int i=0; i< fbo_width; i++) {
+				for (int j=0; j<fbo_height; j++) {
+					output_img.setColor((int)(x) + i,height - fbo_height - (int)(y) + j, 
+						img_part.getColor(i, j));
+				}
+			}
+
+			y += MAX_FBO_HEIGHT;
+		}
+
+		x += MAX_FBO_WIDTH;
+	}
+
+	output_img.saveImage(filename);
+
+	shader.setUniform2f("u_offset",0,0);
+	shader.setUniform1f("u_scale", 1.0);
+
+	// reset modelview matrix
+	update_p_matrix(proj_mat, screen_width, screen_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
+
+	///*ofFbo fbo;
+	//fbo.allocate(width, height);
+	//fbo.begin();
+	//
+	// set projection matrix
+	//glMatrixMode(GL_PROJECTION);
+	//update_p_matrix(proj_mat, width, height);
+	//glLoadMatrixf(proj_mat);
+	//glMatrixMode(GL_MODELVIEW);
+
+	//draw();
+
+	//ofImage img;
+	//img.allocate(width, height, OF_IMAGE_COLOR);
 	//unsigned char * temp_pixels = new unsigned char[width * height * 3];
-	unsigned char * pixels; 
-	pixels = img.getPixels();
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-	
+	//unsigned char * pixels; 
+	//pixels = img.getPixels();
+	//glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	//
 
 	// TODO replace with img.mirror()
-	img.mirror(true,false);
+	//img.mirror(true,false);
 	//for (int i = 0; i < height; i++)
 	//{
 	//	for (int j = 0; j < width; j++)
@@ -575,18 +721,14 @@ void testApp::saveFrame(string filename, int width, int height)
 	//	}
 	//}
 
-	img.saveImage(filename);
+	//img.saveImage(filename);
 
 	//delete[] temp_pixels;
+	//
+
+	//fbo.end();
+
 	
-
-	fbo.end();
-
-	// reset modelview matrix
-	update_p_matrix(proj_mat, screen_width, screen_height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(proj_mat);
-	glMatrixMode(GL_MODELVIEW);
 }
 
 void testApp::saveSVG(string filename)
