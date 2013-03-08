@@ -190,7 +190,7 @@ void testApp::setup(){
 
 	move_camera = false;
 	x_res = 200,
-		z_res = 200; // number of *vertices* on x & z axis
+	z_res = 200; // number of *vertices* on x & z axis
 
 	last_time = 0;
 	//glEnable( GL_DEPTH_TEST );
@@ -215,7 +215,7 @@ void testApp::setup(){
 	shader.setUniform1f("u_scale", 1.0);
 	//GLfloat proj_mat[16], mv_mat[16];
 	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
-	//update_p_matrix(proj_mat, screen_width, screen_height);
+	update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
 	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
@@ -284,7 +284,6 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	glClearColor(0,0,0,0);
 
 	unsigned long long cur_time = ofGetSystemTime();
 	bufferGrid();
@@ -310,7 +309,7 @@ void testApp::draw(){
 	//shader.begin();
 	
 	// QUADS
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
 	//glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	//// use custom attribute
 	//glVertexAttribPointer(
@@ -370,7 +369,7 @@ void testApp::draw(){
 	GLenum err = glGetError();
 	if (err)
 	{
-		//breakpoint
+		//breakpoint?
 		if (false)
 		cout << "error" << endl;
 	}

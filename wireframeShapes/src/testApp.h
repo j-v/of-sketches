@@ -1,12 +1,17 @@
 #pragma once
 
 #include "ofMain.h"
-#include <glm\glm.hpp>
 
-#include <string>
+#include <glm\glm.hpp>
 
 #define uint unsigned int
 
+#define SHAPE_PLANE 0
+#define SHAPE_SPHERE 1
+#define SHAPE_CYLINDER_X 2
+#define SHAPE_CYLINDER_Y 3
+
+typedef int shape_t;
 
 using namespace glm;
 using namespace std;
@@ -23,8 +28,6 @@ typedef struct tcamera
 class testApp : public ofBaseApp{
 
 	public:
-		testApp(uint pScreen_width, uint pScreen_height) 
-			: screen_width(pScreen_width), screen_height(pScreen_height) {};
 		void setup();
 		void update();
 		void draw();
@@ -39,19 +42,18 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-		void saveFrame(string filename);
-		void saveFrame(string filename, int width, int height);
-
-		void saveSVG(string filename);
-		
-
 private:
+	shape_t shape;
+
+
+
 	void generateGrid();
+	void generatePlane();
+
 	void bufferGrid();
 	void look();
 
 	bool move_camera;
-
 
 	GLfloat *g_vertex_buffer_data;
 	GLushort *g_element_buffer_data;
@@ -60,10 +62,6 @@ private:
 	GLuint vertexBuffer;
 	GLuint elementBuffer;
 
-	ofShader shader;
-	GLint vert_3d_attrib; // not used
-	GLint proj_mat_attrib; // not used
-	GLint offset_attrib;
 	GLfloat proj_mat[16];
 	GLfloat mv_mat[16];
 
@@ -75,4 +73,5 @@ private:
 	uint screen_height;
 
 	camera theCamera;
+		
 };
