@@ -65,13 +65,86 @@ void testApp::generatePlane()
 	e_buffer_size = (x_res-1) * (z_res-1) * 4;
 	g_element_buffer_data = new GLushort[e_buffer_size];
 	for (uint i = 0; i < x_res-1; i++) 
-	for (uint j = 0; j < z_res-1; j++) {
-		uint base_index = (i*4) + 4*j*(x_res-1);
-		g_element_buffer_data[base_index] = i + j*x_res;
-		g_element_buffer_data[base_index+1] = (i+1) + j*x_res;
-		g_element_buffer_data[base_index+2] = (i+1) + (j+1)*x_res;
-		g_element_buffer_data[base_index+3] = i + (j+1)*x_res;
+		for (uint j = 0; j < z_res-1; j++) {
+			uint base_index = (i*4) + 4*j*(x_res-1);
+			g_element_buffer_data[base_index] = i + j*x_res;
+			g_element_buffer_data[base_index+1] = (i+1) + j*x_res;
+			g_element_buffer_data[base_index+2] = (i+1) + (j+1)*x_res;
+			g_element_buffer_data[base_index+3] = i + (j+1)*x_res;
+		}
+	
+}
+
+void testApp::generateSphere()
+{
+	// z_res: number of circle slices (y makes more sense than z here)
+	// x_res: number of points on every circle slice
+	float r = 0.5f;
+	float z_step = (r*2.0) / (z_res-1);
+
+	v_buffer_size = x_res * z_res * 3;
+	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3?
+
+	// generate vertex buffer
+	for (int i=0; i< z_res; i++)
+	{
+		float y = z_step * i - r;
+		float slice_r = sqrt(r*r - y*y);
+		for (int j = 0; j < x_res; j++)
+		{
+			float theta = PI * 2 * ( (float)j / ((float) x_res ) );
+			float x = cos(theta) * slice_r;
+			float z = sin(theta) * slice_r;
+
+			//uint base_index = (i*3) + 3*j*x_res;
+			//uint base_index = (j*3) + 3*i*z_res;
+			uint base_index = (i*3)*x_res + 3*j;
+
+			g_vertex_buffer_data[base_index] = x;
+			g_vertex_buffer_data[base_index + 1] = y;
+			g_vertex_buffer_data[base_index + 2] = z;
+		}
 	}
+	
+	// generate element buffer - GL_QUADS
+	e_buffer_size = (x_res) * (z_res-1) * 4;
+	g_element_buffer_data = new GLushort[e_buffer_size];
+	//for (uint i = 0; i < x_res-1; i++) 
+	//for (uint j = 0; j < z_res-1; j++) {
+	//	uint base_index = (i*4) + 4*j*(x_res-1);
+	//	g_element_buffer_data[base_index] = i + j*x_res;
+	//	g_element_buffer_data[base_index+1] = (i+1) + j*x_res;
+	//	g_element_buffer_data[base_index+2] = (i+1) + (j+1)*x_res;
+	//	g_element_buffer_data[base_index+3] = i + (j+1)*x_res;
+	//}
+	//for (uint i = 0; i < x_res; i++) 
+	//	for (uint j = 0; j < z_res-1; j++) {
+	//		uint base_index = (i*4) + 4*j*(x_res-1);
+	//		g_element_buffer_data[base_index] = (i + (j*x_res)) ;
+	//		g_element_buffer_data[base_index+1] = ((i+1)%z_res + j*x_res) ;
+	//		g_element_buffer_data[base_index+2] = ((i+1)%z_res + ((j+1)%x_res)*x_res) ;
+	//		g_element_buffer_data[base_index+3] = (i + (((j+1)%x_res)*x_res));
+	//	}
+
+	for (uint i = 0; i < z_res-1; i++) 
+		for (uint j = 0; j < x_res; j++) {
+			uint base_index = i*4*x_res + 4*j;
+			g_element_buffer_data[base_index] = i*x_res + j;
+			g_element_buffer_data[base_index+1] = (i+1)*x_res + j;
+			g_element_buffer_data[base_index+2] = (i+1)*x_res + (j+1)%x_res;
+			g_element_buffer_data[base_index+3] = i*x_res + (j+1)%x_res;
+		}
+
+}
+
+void testApp::generateCylinderX()
+{
+	// TODO
+}
+
+void testApp::generateCylinderY() 
+{
+	// TODO
 }
 
 void testApp::generateGrid()
@@ -88,7 +161,7 @@ void testApp::generateGrid()
 		generatePlane();
 		break;
 	case SHAPE_SPHERE:
-		// TODO
+		generateSphere();
 		break;
 	case SHAPE_CYLINDER_X:
 		// TODO
@@ -278,7 +351,18 @@ void testApp::keyPressed(int key){
 	{
 		move_camera = !move_camera;
 	}
-
+	else if (key == (int)'1')
+	{
+		shape = SHAPE_PLANE;
+		generateGrid();
+		bufferGrid();
+	}
+	else if (key == (int)'2')
+	{
+		shape = SHAPE_SPHERE;
+		generateGrid();
+		bufferGrid();
+	}
 }
 
 //--------------------------------------------------------------

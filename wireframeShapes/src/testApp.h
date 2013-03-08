@@ -28,6 +28,9 @@ typedef struct tcamera
 class testApp : public ofBaseApp{
 
 	public:
+		testApp(uint pScreen_width, uint pScreen_height) 
+			: screen_width(pScreen_width), screen_height(pScreen_height) {};
+
 		void setup();
 		void update();
 		void draw();
@@ -49,6 +52,9 @@ private:
 
 	void generateGrid();
 	void generatePlane();
+	void generateSphere();
+	void generateCylinderX();
+	void generateCylinderY();
 
 	void bufferGrid();
 	void look();
