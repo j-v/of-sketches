@@ -79,5 +79,8 @@ private:
 	uint screen_height;
 
 	camera theCamera;
+
+	ofEasyCam easycam;
+	bool use_easycam;
 		
 };

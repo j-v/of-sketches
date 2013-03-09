@@ -289,6 +289,9 @@ void testApp::setup(){
 	shape = SHAPE_PLANE;
 	generateGrid();
 	bufferGrid();
+
+	use_easycam=false;
+	easycam.setNearClip( 0.0625);
 }
 
 //--------------------------------------------------------------
@@ -322,6 +325,8 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	
+
 	unsigned long long cur_time = ofGetSystemTime();
 
 	update_p_matrix(proj_mat, screen_width, screen_height);
@@ -332,7 +337,8 @@ void testApp::draw(){
 	glLoadMatrixf(mv_mat);
 
 	//bufferGrid();
-	look();
+	if (!use_easycam) look();
+	else easycam.begin();
 
 	glVertexPointer(3,GL_FLOAT,sizeof(GLfloat)*3,(void*)0);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -364,6 +370,8 @@ void testApp::draw(){
 		cout << "error" << endl;
 	}
 	last_time = cur_time;
+
+	if (use_easycam) easycam.end();
 }
 
 void testApp::look()
@@ -446,6 +454,18 @@ void testApp::keyPressed(int key){
 		shape = SHAPE_CYLINDER_Y;
 		generateGrid();
 		bufferGrid();
+	}
+	else if (key == (int)'o')
+	{
+		easycam.setDistance(easycam.getDistance()/2);
+	}
+	else if (key == (int)'p')
+	{
+		easycam.setDistance(easycam.getDistance()*2);
+	}
+	else if (key == (int)'e')
+	{
+		use_easycam = !use_easycam;
 	}
 }
 
