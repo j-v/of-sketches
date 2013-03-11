@@ -63,7 +63,8 @@ void testApp::generatePlane()
 		}
 	// element buffer - GL_QUADS
 	e_buffer_size = (x_res-1) * (z_res-1) * 4;
-	g_element_buffer_data = new GLushort[e_buffer_size];
+	//g_element_buffer_data = new GLushort[e_buffer_size];
+	g_element_buffer_data = new GLuint[e_buffer_size];
 	for (uint i = 0; i < x_res-1; i++) 
 		for (uint j = 0; j < z_res-1; j++) {
 			uint base_index = (i*4) + 4*j*(x_res-1);
@@ -108,7 +109,8 @@ void testApp::generateSphere()
 	
 	// generate element buffer - GL_QUADS
 	e_buffer_size = (x_res) * (z_res-1) * 4;
-	g_element_buffer_data = new GLushort[e_buffer_size];
+	//g_element_buffer_data = new GLushort[e_buffer_size];
+	g_element_buffer_data = new GLuint[e_buffer_size];
 
 	for (uint i = 0; i < z_res-1; i++) 
 		for (uint j = 0; j < x_res; j++) {
@@ -153,7 +155,8 @@ void testApp::generateCylinderX()
 	
 	// generate element buffer - GL_QUADS
 	e_buffer_size = (x_res) * (z_res-1) * 4;
-	g_element_buffer_data = new GLushort[e_buffer_size];
+	//g_element_buffer_data = new GLushort[e_buffer_size];
+	g_element_buffer_data = new GLuint[e_buffer_size];
 
 	for (uint i = 0; i < z_res-1; i++) 
 		for (uint j = 0; j < x_res; j++) {
@@ -197,7 +200,8 @@ void testApp::generateCylinderY()
 	
 	// generate element buffer - GL_QUADS
 	e_buffer_size = (x_res) * (z_res-1) * 4;
-	g_element_buffer_data = new GLushort[e_buffer_size];
+	//g_element_buffer_data = new GLushort[e_buffer_size];
+	g_element_buffer_data = new GLuint[e_buffer_size];
 
 	for (uint i = 0; i < z_res-1; i++) 
 		for (uint j = 0; j < x_res; j++) {
@@ -246,7 +250,9 @@ void testApp::bufferGrid()
 	buffer_data(elementBuffer, 
 		GL_ELEMENT_ARRAY_BUFFER, 
 		g_element_buffer_data, 
-		sizeof(GLushort) * e_buffer_size);
+		//sizeof(GLushort) * e_buffer_size);
+		sizeof(GLuint) * e_buffer_size);
+	
 }
 
 //--------------------------------------------------------------
@@ -349,7 +355,8 @@ void testApp::draw(){
 		GL_QUADS,
         //num_elements,              /* count */
 		e_buffer_size,
-        GL_UNSIGNED_SHORT,  /* type */
+        //GL_UNSIGNED_SHORT,  /* type */
+		GL_UNSIGNED_INT,
         (void*)0            /* element array buffer offset */
     );
 	glDisableClientState(GL_VERTEX_ARRAY);

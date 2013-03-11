@@ -10,6 +10,9 @@ testApp::~testApp()
 	delete[] leftChannel;
 	delete[] rightChannel;
 
+	soundStream->close();
+	//delete soundStream;
+
 	smoothVol = 0.0;
 	scaledVol = 0.0;
 }

@@ -62,7 +62,8 @@ private:
 	bool move_camera;
 
 	GLfloat *g_vertex_buffer_data;
-	GLushort *g_element_buffer_data;
+	//GLushort *g_element_buffer_data;
+	GLuint *g_element_buffer_data;
 	uint e_buffer_size;
 	uint v_buffer_size;
 	GLuint vertexBuffer;
