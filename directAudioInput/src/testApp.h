@@ -25,7 +25,7 @@ class testApp : public ofBaseApp{
 		void audioIn(float * input, int bufferSize, int nChannels); 
 
 private:
-	ofSoundStream soundStream;
+	ofSoundStream * soundStream;
 
 	int bufferSize;
 
@@ -35,5 +35,7 @@ private:
 	float smoothVol;
 	float scaledVol;
 	float smoothScaledVol;
+
+	int deviceID;
 		
 };
