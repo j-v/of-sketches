@@ -40,10 +40,10 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		void saveFrame(string filename);
-		void saveFrame(string filename, int width, int height);
+		void saveFrameFBO(string filename, int width, int height);
+		void saveFrameMultiFBO(string filename, int width, int height);
 
-		void saveSVG(string filename);
-		
+		//void saveSVG(string filename);
 
 private:
 	void generateGrid();

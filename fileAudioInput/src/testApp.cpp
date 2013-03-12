@@ -13,7 +13,7 @@ testApp::~testApp()
 	delete[] rightChannel;
 
 	soundStream->close();
-	delete soundStream;
+	//delete soundStream;
 
 	smoothVol = 0.0;
 	scaledVol = 0.0;
@@ -44,9 +44,14 @@ void testApp::setup(){
 	cout << "Sample loaded." << endl;
 	sample.setLooping(true);
 
+	deviceID = -1; // using default deviceID
+
+	/*deviceID = 1;
+	soundStream->setDeviceID(deviceID);
+*/
 	soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
 
-	deviceID = -1; // using default deviceID
+	
 }
 
 //--------------------------------------------------------------
@@ -61,7 +66,7 @@ void testApp::draw(){
 
 	ofDrawBitmapString("AUDIO FILE INPUT", 32, 32);
 	if (deviceID == -1)
-		ofDrawBitmapString("Using default audio input. Press ,/. to switch", 32, 64);
+		ofDrawBitmapString("Using default audio output. Press ,/. to switch", 32, 64);
 	else
 	{
 		string did_string = "Using device " + ofToString(deviceID) + ". Press ,/. to switch";
@@ -146,6 +151,49 @@ void testApp::keyPressed(int key){
 	if (key == (int)'p')
 	{
 		playAudio = !playAudio;
+	}
+	else if (key == (int)',')
+	{
+		if (deviceID == -1)
+			deviceID = 0;
+		else
+		{
+			deviceID--;
+			if (deviceID < 0) deviceID = 0;
+		}
+		soundStream->stop();
+		soundStream->close();
+		delete soundStream;
+		soundStream = new ofSoundStream();
+		soundStream->setDeviceID(deviceID);
+		int out_channels = 2;
+		int in_channels = 0;
+		int sample_rate = 44100;
+		int n_buffers = 4; // number of buffers (for latency)
+		soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
+		soundStream->start();
+	}
+	else if (key == (int)'.')
+	{
+		if (deviceID == -1)
+			deviceID = 0;
+		else
+		{
+			deviceID++;
+		}
+		
+		soundStream->stop();
+		soundStream->close();
+		delete soundStream;
+		soundStream = new ofSoundStream();
+		soundStream->setDeviceID(deviceID);
+		int out_channels = 2;
+		int in_channels = 0;
+		int sample_rate = 44100;
+		int n_buffers = 4; // number of buffers (for latency)
+		soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
+		soundStream->start();
+		
 	}
 }
 

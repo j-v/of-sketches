@@ -20,7 +20,7 @@ static float rand_float(float lo, float hi)
 	return lo + (float)rand()/((float)RAND_MAX/(hi-lo));
 }
 
-// ONLY FOR STATIC BUFFERS
+// ONLY FOR STATIC BUFFERS -- unused for now
 static GLuint make_buffer(
     GLenum target,
     const void *buffer_data,
@@ -65,46 +65,6 @@ static void update_p_matrix(GLfloat *matrix, int w, int h)
 }
 
 
-// unused
-void BuildPerspProjMat(float *m, float fov, float aspect,
- float znear, float zfar)
- {
-  float ymax = znear * tan(fov * PI_OVER_360);
-  float ymin = -ymax;
-  float xmax = ymax * aspect;
-  float xmin = ymin * aspect;
-
-  float width = xmax - xmin;
-  float height = ymax - ymin;
-
-  float depth = zfar - znear;
-  float q = -(zfar + znear) / depth;
-  float qn = -2 * (zfar * znear) / depth;
-
-  float w = 2 * znear / width;
-  w = w / aspect;
-  float h = 2 * znear / height;
-
-  m[0]  = w;
-  m[1]  = 0;
-  m[2]  = 0;
-  m[3]  = 0;
-
-  m[4]  = 0;
-  m[5]  = h;
-  m[6]  = 0;
-  m[7]  = 0;
-
-  m[8]  = 0;
-  m[9]  = 0;
-  m[10] = q;
-  m[11] = -1;
-
-  m[12] = 0;
-  m[13] = 0;
-  m[14] = qn;
-  m[15] = 0;
- }
 
 // eye_offset defines distance along z axis
 static void update_mv_matrix(GLfloat *matrix, GLfloat eye_offset)
@@ -156,19 +116,6 @@ void testApp::generateGrid()
 
 	num_elements = e_buffer_size;
 
-	/*vertexBuffer = make_buffer(
-        GL_ARRAY_BUFFER,
-        g_vertex_buffer_data,
-		sizeof(GLfloat) * v_buffer_size
-    );
-	elementBuffer = make_buffer(
-        GL_ELEMENT_ARRAY_BUFFER,
-        g_element_buffer_data,
-		sizeof(GLushort) * e_buffer_size
-    );*/
-
-
-
 }
 
 void testApp::bufferGrid()
@@ -193,11 +140,8 @@ void testApp::setup(){
 	z_res = 200; // number of *vertices* on x & z axis
 
 	last_time = 0;
-	//glEnable( GL_DEPTH_TEST );
+	glDisable(GL_DEPTH_TEST);
 	glEnable( GL_BLEND );
-	//glEnable( GL_COLOR_MATERIAL );
-	//glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-	//glBlendEquation( GL_FUNC_ADD );
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 	ofSetLogLevel(OF_LOG_VERBOSE);
@@ -286,26 +230,23 @@ void testApp::update(){
 void testApp::draw(){
 
 	unsigned long long cur_time = ofGetSystemTime();
+
+	
 	bufferGrid();
 	static bool mat_init = false;
-	/*if (!mat_init)
-	{*/
+	if (!mat_init)
+	{
 		// not sure why this part is necessary as we init'd proj and mv matrices in setup()
 		update_p_matrix(proj_mat, screen_width, screen_height);
 		update_mv_matrix(mv_mat, 0);
 		mat_init = true;
-	//}
+	}
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-	/*glLoadMatrixf(mv_mat);*/
 
-
-	
 	look();
 	
-
 	//shader.begin();
 	
 	// QUADS
@@ -339,8 +280,6 @@ void testApp::draw(){
 	//glDisableVertexAttribArray(vert_3d_attrib);
 
 	//shader.end();
-
-
 	
 	// show fps
 	// PROBLEM - using my own low level opengl calls seems to cause a problem with
@@ -374,44 +313,39 @@ void testApp::draw(){
 		cout << "error" << endl;
 	}
 	last_time = cur_time;
-	//_CrtDumpMemoryLeaks();
-
-	
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 	static float offset = 0;
-	static int viewportx = 0;
 	static float im_save_scale = 1.0;
 	static float line_width = 1.0;
 
-	if (key == (int)'d')
+	if (key == (int)'a')
 	{
+		string timestamp = ofGetTimestampString();
 		stringstream ss;
-		ss << im_save_scale;
-		saveFrame("test" + ss.str() + ".png", screen_width * im_save_scale, screen_height * im_save_scale);
-		//// current problem: frames won't be the same b/c of time difference
-		//	
-		//// set scaling uniform value
-		//shader.setUniform1f("u_scale", 2.0);
+		ss << "frame_" << timestamp << "_" << screen_width << "x" << screen_height << ".png";
+		saveFrame(ss.str() + ".png");
+	}
+	else if (key == (int)'s')
+	{
+		string timestamp = ofGetTimestampString();
+		stringstream ss;
+		int im_width = screen_width * im_save_scale;
+		int im_height = screen_height * im_save_scale;
+		ss << "fbo_" << timestamp << "_" << im_width << "x" << im_height << ".png";
+		saveFrameFBO(ss.str() + ".png", im_width, im_height);
 
-		//for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
-		//{
-		//	//shader.end();
-		//	shader.setUniform2f("u_offset",i,0);
-		//	//shader.begin();
-		//	
-		//	stringstream ss;
-		//	ss << i;
-		//	saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
-		//	//shader.end();
-		//}
-		//shader.setUniform2f("u_offset",0,0);
-		//shader.setUniform1f("u_scale", 1.0);
-		////shader.begin();
-		//float k = 5.0; // 5, 10 is too big
-		////saveFrame("testx4.png", (int)(screen_width * k), (int)(screen_height * k));
+	}
+	else if (key == (int)'d')
+	{
+		string timestamp = ofGetTimestampString();
+		stringstream ss;
+		int im_width = screen_width * im_save_scale;
+		int im_height = screen_height * im_save_scale;
+		ss << "mfbo_" << timestamp << "_" << im_width << "x" << im_height << ".png";
+		saveFrameMultiFBO(ss.str() + ".png", im_width, im_height);
 	}
 	else if (key == (int)'q')
 	{
@@ -456,16 +390,6 @@ void testApp::keyPressed(int key){
 	{
 		offset -= 0.5	;
 		shader.setUniform2f("u_offset",offset,0);
-	}
-	else if (key == (int)'[')
-	{
-		viewportx -= 20;
-		glViewport(viewportx, 0, screen_width, screen_height);
-	}
-	else if (key == (int)']')
-	{
-		viewportx += 20;
-		glViewport(viewportx, 0, screen_width, screen_height);
 	}
 	else if (key == (int)'c')
 	{
@@ -544,66 +468,59 @@ void testApp::saveFrame(string filename)
 {
 	ofImage img;
 	img.allocate(screen_width, screen_height, OF_IMAGE_COLOR);
-	unsigned char * temp_pixels = new unsigned char[screen_width * screen_height * 3];
-	unsigned char * pixels; // TODO initialize
-	glReadPixels(0, 0, screen_width, screen_height, GL_RGB, GL_UNSIGNED_BYTE, temp_pixels);
+	unsigned char * pixels; 
 	pixels = img.getPixels();
-	/*uint num_bytes = screen_width * screen_height * 3;
-	for (int i=num_bytes-1; i >= 0; i--)
-	{
-		pixels[num_bytes-i-1] = temp_pixels[i];
-	}*/
-	for (int i = 0; i < screen_height; i++)
-	{
-		for (int j = 0; j < screen_width; j++)
-		{
-			int src_index = i * screen_width * 3 + j * 3;
-			int dest_index = (screen_height - i - 1) * screen_width * 3 + j * 3;
-			for (int k = 0; k < 3; k++)
-			{
-				pixels[dest_index + k] = temp_pixels[src_index + k];
-			}
-		}
-	}
+	glReadPixels(0, 0, screen_width, screen_height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	
+	img.mirror(true, false);
 
 	img.saveImage(filename);
-
-	delete[] temp_pixels;
 }
 
-void testApp::saveFrame(string filename, int width, int height)
+void testApp::saveFrameFBO(string filename, int width, int height)
 {
-	//// Save directoy to ofImage -- DOESN'T WORK
-	//ofImage img;
-	//img.allocate(width, height, OF_IMAGE_COLOR);
+	// set the scale -- assume we kept width/height ratio with the screen
+	float ratio = (float)width / (float)screen_width;
+	
+	//shader.setUniform1f("u_scale", ratio);
 
-	//img.bind();
-	//draw();
-	//img.unbind();
-	//img.update();
-	//img.saveImage(filename);
+	// set projection matrix
+	glMatrixMode(GL_PROJECTION);
+	update_p_matrix(proj_mat, width, height);
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
 
-	//// Check max viewport dimensions - don't know how useful this is
-	//GLint dims[2];
-	//glGetIntegerv(GL_MAX_VIEWPORT_DIMS, &dims[0]);
+	ofFbo fbo;
+	fbo.allocate(width, height); 
 
-	//// set scaling uniform value
-	//shader.setUniform1f("u_scale", 2.0);
+	fbo.begin();
+	glClearColor(0,0,0,1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	draw();
 
-	//for (float i=-2; i< 3.0; i+=2.0) // step size same as scale?
-	//{
-	//	//shader.end();
-	//	shader.setUniform2f("u_offset",i,0);
-	//	//shader.begin();
-	//	
-	//	stringstream ss;
-	//	ss << i;
-	//	saveFrame("test" + ss.str() + ".png", screen_width, screen_height);
-	//	//shader.end();
-	//}
-	//shader.setUniform2f("u_offset",0,0);
+	ofImage output_img;
+	output_img.allocate(width, height, OF_IMAGE_COLOR);
+
+	unsigned char * pixels = output_img.getPixels();
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	output_img.mirror(true, false);
+
+	fbo.end();
+
+	output_img.saveImage(filename);
+
 	//shader.setUniform1f("u_scale", 1.0);
 
+	// reset modelview matrix
+	update_p_matrix(proj_mat, screen_width, screen_height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void testApp::saveFrameMultiFBO(string filename, int width, int height)
+{
+	// TODO change these values, maybe 2000
 	int MAX_FBO_WIDTH = 500;
 	int MAX_FBO_HEIGHT = 500;
 
@@ -625,7 +542,7 @@ void testApp::saveFrame(string filename, int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 
 	ofFbo fbo;
-	fbo.allocate(screen_width, screen_height); // todo
+	fbo.allocate(screen_width, screen_height); 
 
 	float x =0;
 	while (x < width)
@@ -653,15 +570,13 @@ void testApp::saveFrame(string filename, int width, int height)
 			unsigned char * pixels = img_part.getPixels();
 			glReadPixels(0, MAX_FBO_HEIGHT-fbo_height, fbo_width, fbo_height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 			img_part.mirror(true, false);
-			img_part.saveImage("part.png");
+			//img_part.saveImage("part.png"); // debugging : save the image part
 
 			// end fbo
 			fbo.end();
 
 			// draw to output_image
-			/*output_img.bind();
-			img_part.draw( (int)(x + floorf(width/2)), (int)(y + floorf(width/2)) );
-			output_img.unbind();*/
+			// TODO fid a more efficient way
 			for (int i=0; i< fbo_width; i++) {
 				for (int j=0; j<fbo_height; j++) {
 					output_img.setColor((int)(x) + i,height - fbo_height - (int)(y) + j, 
@@ -686,65 +601,26 @@ void testApp::saveFrame(string filename, int width, int height)
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
 
-	///*ofFbo fbo;
-	//fbo.allocate(width, height);
-	//fbo.begin();
-	//
-	// set projection matrix
-	//glMatrixMode(GL_PROJECTION);
-	//update_p_matrix(proj_mat, width, height);
-	//glLoadMatrixf(proj_mat);
-	//glMatrixMode(GL_MODELVIEW);
-
-	//draw();
-
-	//ofImage img;
-	//img.allocate(width, height, OF_IMAGE_COLOR);
-	//unsigned char * temp_pixels = new unsigned char[width * height * 3];
-	//unsigned char * pixels; 
-	//pixels = img.getPixels();
-	//glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-	//
-
-	// TODO replace with img.mirror()
-	//img.mirror(true,false);
-	//for (int i = 0; i < height; i++)
-	//{
-	//	for (int j = 0; j < width; j++)
-	//	{
-	//		int src_index = i * width * 3 + j * 3;
-	//		int dest_index = (height - i - 1) * width * 3 + j * 3;
-	//		for (int k = 0; k < 3; k++)
-	//		{
-	//			pixels[dest_index + k] = temp_pixels[src_index + k];
-	//		}
-	//	}
-	//}
-
-	//img.saveImage(filename);
-
-	//delete[] temp_pixels;
-	//
-
-	//fbo.end();
-
-	
 }
 
-void testApp::saveSVG(string filename)
-{
-	FILE * fp;
-	const char * filename_c = filename.c_str();
-	fp = fopen(filename_c, "wb");
-	int state = GL2PS_OVERFLOW, buffsize = 0;
-	while(state == GL2PS_OVERFLOW){
-      buffsize += 1024*1024;
-	  gl2psBeginPage("test","jon",NULL, GL2PS_SVG, GL2PS_SIMPLE_SORT, 
-				   GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
-                   GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, filename_c);
-	  draw();
-	  glFlush();
-	  state = gl2psEndPage();
-	}
-	fclose(fp);
-}
+// doesn't work as GL2PS doesn't work with shaders
+//void testApp::saveSVG(string filename)
+//{
+//
+//	FILE * fp;
+//	const char * filename_c = filename.c_str();
+//	fp = fopen(filename_c, "wb");
+//	int state = GL2PS_OVERFLOW, buffsize = 0;
+//
+//	while(state == GL2PS_OVERFLOW){
+//      buffsize += 1024*1024;
+//	  gl2psBeginPage("test","3DWARV",NULL, GL2PS_SVG, GL2PS_SIMPLE_SORT, 
+//				   GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
+//                   GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, filename_c);
+//	  draw();
+//	  glFlush();
+//	  state = gl2psEndPage();
+//	}
+//
+//	fclose(fp);
+//}
