@@ -9,7 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
-#include "..\..\..\..\gl2ps-1.3.8-source\gl2ps.h"
+//#include "..\..\..\..\gl2ps-1.3.8-source\gl2ps.h"
 
 #define PI_OVER_360 0.00872664625997164788461845384244
 
@@ -326,7 +326,7 @@ void testApp::keyPressed(int key){
 		string timestamp = ofGetTimestampString();
 		stringstream ss;
 		ss << "frame_" << timestamp << "_" << screen_width << "x" << screen_height << ".png";
-		saveFrame(ss.str() + ".png");
+		saveFrame(ss.str());
 	}
 	else if (key == (int)'s')
 	{
@@ -335,7 +335,7 @@ void testApp::keyPressed(int key){
 		int im_width = screen_width * im_save_scale;
 		int im_height = screen_height * im_save_scale;
 		ss << "fbo_" << timestamp << "_" << im_width << "x" << im_height << ".png";
-		saveFrameFBO(ss.str() + ".png", im_width, im_height);
+		saveFrameFBO(ss.str(), im_width, im_height);
 
 	}
 	else if (key == (int)'d')
@@ -345,7 +345,7 @@ void testApp::keyPressed(int key){
 		int im_width = screen_width * im_save_scale;
 		int im_height = screen_height * im_save_scale;
 		ss << "mfbo_" << timestamp << "_" << im_width << "x" << im_height << ".png";
-		saveFrameMultiFBO(ss.str() + ".png", im_width, im_height);
+		saveFrameMultiFBO(ss.str(), im_width, im_height);
 	}
 	else if (key == (int)'q')
 	{
