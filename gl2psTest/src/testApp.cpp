@@ -48,12 +48,12 @@ static float rand_float(float lo, float hi)
 	return lo + (float)rand()/((float)RAND_MAX/(hi-lo));
 }
 
-static void generateGrid()
+static void generateAndDrawGrid()
 {
 	// SQUARE GRID centered at 0, side length = 1
 	// vertex buffer
-	int x_res = 20;
-	int z_res = 20;
+	int x_res = 50;
+	int z_res = 50;
 
 	float x_step = 1.0 / (float)(x_res - 1);
 	float z_step = 1.0 / (float)(z_res - 1);
@@ -79,8 +79,9 @@ static void generateGrid()
 			g_element_buffer_data[base_index+3] = i + (j+1)*x_res;
 		}
 
-	// draw quads
+	// draw quads - GL Client calls
 	glBegin(GL_QUADS);
+	
 	for (int i=0; i<e_buffer_size; i++)
 	{
 		int base_index = g_element_buffer_data[i] * 3;
@@ -96,12 +97,14 @@ static void generateGrid()
 }
 
 
-
+// Draw the grid -- for rendering to screen or to PS/SVG etc.
 void display()
 {
+
 	glClearColor(0., 0., 0., 1.);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Update projection and modelview matrices
 	GLfloat p_mat[16], mv_mat[16];
 	update_p_matrix(p_mat,1024, 768);
 	glMatrixMode(GL_PROJECTION);
@@ -110,65 +113,24 @@ void display()
 	update_mv_matrix(mv_mat, 0);
 	glLoadMatrixf(mv_mat);
 
-	glColor3f(1.,1.,1.);
-	generateGrid();
-
-
-
-	//glColor3f(1.,1.,1.);
-	//glBegin(GL_LINE_STRIP);
-	//glVertex3f(-0.5,-0.5, -0.5);
-	//glVertex3f(0.5,-0.5, -0.5);
-	//glVertex3f(0.5,0.5, -0.5);
-	//glEnd();
-
-	
-	/*glBegin(GL_TRIANGLES);
-
-	glVertex3f(0,0,-0.7);
-	glVertex3f(0.5,0,-0.7);
-	glVertex3f(0.2,0.5,-0.7);
-
-	glVertex3f(0,0,-0.9);
-	glVertex3f(0.5,0,-0.9);
-	glVertex3f(0.2,0.5,-0.9);
-	
-	glVertex3f(0,0,-1.0);
-	glVertex3f(0.5,0,-1.0);
-	glVertex3f(0.2,0.5,-1.0);
-	
-	glVertex3f(0,0,-1.2);
-	glVertex3f(0.5,0,-1.2);
-	glVertex3f(0.2,0.5,-2.2);
-
-	glVertex3f(0,0,-1.9);
-	glVertex3f(0.5,0,-1.9);
-	glVertex3f(0.2,0.5,-1.9);
-
-	glVertex3f(0,0,-2.9);
-	glVertex3f(0.5,0,-2.9);
-	glVertex3f(0.2,0.5,-2.9);
-
-	glVertex3f(0,0,-5);
-	glVertex3f(0.5,0,-5);
-	glVertex3f(0.2,0.5,-5);
-
-	glEnd();*/
+	glColor4f(1.,1.,1.,0.1);
+	generateAndDrawGrid();
 
 	glFlush();
 }
 
-void saveSVG()
+
+void saveSVG(string filename)
 {
 	FILE * fp;
-	char * filename = "out.svg";
-	fp = fopen(filename, "wb");
+	const char * filename_str = filename.c_str();
+	fp = fopen(filename_str, "wb");
 	int state = GL2PS_OVERFLOW, buffsize = 0;
 	while(state == GL2PS_OVERFLOW){
       buffsize += 1024*1024;
 	  gl2psBeginPage("test","jon",NULL, GL2PS_SVG, GL2PS_SIMPLE_SORT, 
 				   GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
-                   GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, filename);
+                   GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, filename_str);
 	  display();
 	  state = gl2psEndPage();
 	}
@@ -180,7 +142,12 @@ void saveSVG()
 void testApp::setup(){
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
 
-	
+	ofEnableAlphaBlending();
+	glDisable(GL_DEPTH_TEST);
+	glEnable( GL_BLEND );
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	gl2psEnable(GL_BLEND);
+	gl2psBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 }
 
 //--------------------------------------------------------------
@@ -198,7 +165,7 @@ void testApp::keyPressed(int key){
 	if (key==(int)'s')
 	{
 		std::cout << "Saving svg" << std::endl;
-		saveSVG();
+		saveSVG(ofGetTimestampString() + ".svg");
 	}
 }
 
