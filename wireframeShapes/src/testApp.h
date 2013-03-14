@@ -50,7 +50,7 @@ private:
 
 
 
-	void generateGrid();
+	void generateWireframe();
 	void generatePlane();
 	void generateSphere();
 	void generateCylinderX();

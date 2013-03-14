@@ -65,6 +65,7 @@ void testApp::draw(){
 	buf = "Listening for OSC messages on port " + ofToString(PORT);
 	ofDrawBitmapString(buf, 10, 20);
 
+	// print the currently stored array of messages
 	for(int i = 0; i < NUM_MSG_STRINGS; i++){
 		ofDrawBitmapString(msgStrings[i], 10, 40 + 15 * i);
 	}

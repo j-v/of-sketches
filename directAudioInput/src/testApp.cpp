@@ -1,6 +1,8 @@
 #include "testApp.h"
 
 static const float SMOOTH_CONST = 0.93;
+static const float SMOOTH_SCALE_MAX = 0.3;
+static const float SCALE_MAX = 1.0;
 
 testApp::~testApp()
 {
@@ -11,7 +13,7 @@ testApp::~testApp()
 	delete[] rightChannel;
 
 	soundStream->close();
-	//delete soundStream;
+	//delete soundStream; // unnecessary, causes an exception to be thrown
 
 	smoothVol = 0.0;
 	scaledVol = 0.0;
@@ -35,9 +37,14 @@ void testApp::setup(){
 	int sample_rate = 44100;
 	int n_buffers = 4; // number of buffers (for latency)
 
-	soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
+	deviceID = -1; // using default deviceID 
+	
+	// Do this if wanting to use a different deviceID
+	//deviceID = 0;
+	//soundStream->setDeviceID(deviceID);
 
-	deviceID = -1; // using default deviceID
+	soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
+	
 }
 
 //--------------------------------------------------------------
@@ -138,6 +145,9 @@ void testApp::keyPressed(int key){
 			deviceID--;
 			if (deviceID < 0) deviceID = 0;
 		}
+
+		// update input device  
+		// TODO clean this up into it's own function
 		soundStream->stop();
 		soundStream->close();
 		delete soundStream;
@@ -158,7 +168,9 @@ void testApp::keyPressed(int key){
 		{
 			deviceID++;
 		}
-		
+
+		// update input device  
+		// TODO clean this up into it's own function
 		soundStream->stop();
 		soundStream->close();
 		delete soundStream;
@@ -231,13 +243,12 @@ void testApp::audioIn(float * input, int bufferSize, int nChannels)
 	vol /= bufferSize;
 	vol = sqrtf(vol);
 
+	// smooth the volume at each step
 	smoothVol *= SMOOTH_CONST;
 	smoothVol += vol * (1-SMOOTH_CONST);
 
-	float SCALE_MAX = 1.0;
+	// map volume to level between [0, 1.0]
 	scaledVol = ofMap(vol,0.0,SCALE_MAX, 0.0, 1.0, true);
-
-	float SMOOTH_SCALE_MAX = 0.3;
 	smoothScaledVol = ofMap(smoothVol, 0.0, SMOOTH_SCALE_MAX, 0.0, 1.0, true);
 
 }

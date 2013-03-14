@@ -61,6 +61,8 @@ void testApp::generatePlane()
 			//g_vertex_buffer_data[base_index + 1] = rand_float(-0.01, 0.01);
 			g_vertex_buffer_data[base_index + 2] = -0.5 + j * z_step;
 		}
+
+
 	// element buffer - GL_QUADS
 	e_buffer_size = (x_res-1) * (z_res-1) * 4;
 	//g_element_buffer_data = new GLushort[e_buffer_size];
@@ -213,7 +215,7 @@ void testApp::generateCylinderY()
 		}
 }
 
-void testApp::generateGrid()
+void testApp::generateWireframe()
 {
 	if (g_vertex_buffer_data != NULL)
 		delete[] g_vertex_buffer_data;
@@ -293,25 +295,24 @@ void testApp::setup(){
 
 	// initialize shape
 	shape = SHAPE_PLANE;
-	generateGrid();
+	generateWireframe();
 	bufferGrid();
 
+	// Easycam allows mouse interaction
 	use_easycam=false;
 	easycam.setNearClip( 0.0625);
+	easycam.setDistance(1.0);
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
-	// TODO generate grid?
-
 	unsigned long long cur_time = ofGetSystemTime();
 	
-	//rotate and zoom camera
-	double tick_double = double(cur_time % 2000)/2000;
-	
-	double scale = abs(tick_double - 0.5) * 3;
 	if (move_camera)
 	{
+		//rotate and zoom camera
+		double tick_double = double(cur_time % 2000)/2000;
+		double scale = abs(tick_double - 0.5) * 3;
 		theCamera.position.x = cos(tick_double * 2 * PI) * scale;
 		theCamera.position.y = 0.35f;
 		theCamera.position.z = sin(tick_double * 2 * PI) * scale ;
@@ -342,7 +343,6 @@ void testApp::draw(){
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(mv_mat);
 
-	//bufferGrid();
 	if (!use_easycam) look();
 	else easycam.begin();
 
@@ -351,11 +351,8 @@ void testApp::draw(){
     
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBuffer);
     glDrawElements(
-		//GL_LINE_LOOP,		/* mode */
 		GL_QUADS,
-        //num_elements,              /* count */
-		e_buffer_size,
-        //GL_UNSIGNED_SHORT,  /* type */
+		e_buffer_size, /* count */
 		GL_UNSIGNED_INT,
         (void*)0            /* element array buffer offset */
     );
@@ -401,7 +398,6 @@ void testApp::look()
 						0,	1,	0,	0,
 						0,	0,	1,	0,
 						-theCamera.position.x,	-theCamera.position.y,	-theCamera.position.z,	1);
-	//mat4 m_v = translation * rotation;
 	mat4 m_v =  rotation * translation;
 	
 	glMatrixMode(GL_MODELVIEW);
@@ -413,25 +409,25 @@ void testApp::keyPressed(int key){
 	if (key == (int)'q')
 	{
 		x_res /= 2;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'w')
 	{
 		x_res *= 2;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'a')
 	{
 		z_res /= 2;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'s')
 	{
 		z_res *= 2;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'c')
@@ -441,25 +437,25 @@ void testApp::keyPressed(int key){
 	else if (key == (int)'1')
 	{
 		shape = SHAPE_PLANE;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'2')
 	{
 		shape = SHAPE_SPHERE;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'3')
 	{
 		shape = SHAPE_CYLINDER_X;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'4')
 	{
 		shape = SHAPE_CYLINDER_Y;
-		generateGrid();
+		generateWireframe();
 		bufferGrid();
 	}
 	else if (key == (int)'o')

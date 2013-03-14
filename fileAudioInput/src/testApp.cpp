@@ -46,9 +46,10 @@ void testApp::setup(){
 
 	deviceID = -1; // using default deviceID
 
-	/*deviceID = 1;
-	soundStream->setDeviceID(deviceID);
-*/
+	// If not using default device:
+	//deviceID = 1;
+	//soundStream->setDeviceID(deviceID);
+
 	soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
 
 	
@@ -161,6 +162,8 @@ void testApp::keyPressed(int key){
 			deviceID--;
 			if (deviceID < 0) deviceID = 0;
 		}
+
+		// change output device -- TODO extract to own function
 		soundStream->stop();
 		soundStream->close();
 		delete soundStream;
@@ -182,6 +185,7 @@ void testApp::keyPressed(int key){
 			deviceID++;
 		}
 		
+		// change output device -- TODO extract to own function
 		soundStream->stop();
 		soundStream->close();
 		delete soundStream;
@@ -239,6 +243,9 @@ void testApp::dragEvent(ofDragInfo dragInfo){
 
 void testApp::audioRequested 	(float * output, int bufferSize, int nChannels){
 	float vol = 0.0;
+
+	// Get next samples from audio file and measure the volume
+
 	for (int i=0; i<bufferSize; i++)
 	{
 		// mono
@@ -275,6 +282,7 @@ void testApp::audioRequested 	(float * output, int bufferSize, int nChannels){
 	}
 
 	// TODO maybe put this in update() instead
+	// Smooth and scale the volume
 	vol /= bufferSize;
 	vol = sqrtf(vol);
 

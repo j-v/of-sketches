@@ -1,3 +1,5 @@
+// Code for this class was taken from http://forum.openframeworks.cc/index.php/topic,3502.0.html
+
 #ifndef SAMPLE_H
 #define SAMPLE_H
 

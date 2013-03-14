@@ -9,11 +9,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
-//#include "..\..\..\..\gl2ps-1.3.8-source\gl2ps.h"
-
 #define PI_OVER_360 0.00872664625997164788461845384244
 
+// constants for projection matrix
+#define PROJECTION_FOV_RATIO 0.7f
+#define PROJECTION_NEAR_PLANE 0.0625f
+#define PROJECTION_FAR_PLANE 256.0f
 
+// TODO can be replaced with OF function?
+// TODO need to seed random?
 static float rand_float(float lo, float hi)
 {
 	
@@ -42,9 +46,6 @@ static void buffer_data(GLuint buffer, GLenum target, const void *buffer_data, G
 	
 }
 
-#define PROJECTION_FOV_RATIO 0.7f
-#define PROJECTION_NEAR_PLANE 0.0625f
-#define PROJECTION_FAR_PLANE 256.0f
 
 static void update_p_matrix(GLfloat *matrix, int w, int h)
 {
@@ -99,6 +100,7 @@ void testApp::generateGrid()
 			uint base_index = (i*3) + 3*j*x_res;
 			g_vertex_buffer_data[base_index] = -0.5f + i * x_step;
 			//g_vertex_buffer_data[base_index + 1] = -0.0f;
+			// random noise along y axis
 			g_vertex_buffer_data[base_index + 1] = rand_float(-0.01, 0.01);
 			g_vertex_buffer_data[base_index + 2] = -0.5 + j * z_step;
 		}
@@ -174,7 +176,11 @@ void testApp::setup(){
 //--------------------------------------------------------------
 void testApp::update(){
 	unsigned long long cur_time = ofGetSystemTime();
+	
+	// grid needs to be regenerated every draw due to random noise 
+	// TODO maybe we can use a separate buffer for noise and do displacement in shader
 	generateGrid();
+
 	//rotate and zoom camera
 	double tick_double = double(cur_time % 2000)/2000;
 	
@@ -484,6 +490,7 @@ void testApp::saveFrameFBO(string filename, int width, int height)
 	glMatrixMode(GL_MODELVIEW);
 }
 
+// TODO doesn't center the shape properly when width and height are smaller than screen dimensions
 void testApp::saveFrameMultiFBO(string filename, int width, int height)
 {
 	// TODO change these values, maybe 2000  -- or at least screen size (might have problems with current code if higher)

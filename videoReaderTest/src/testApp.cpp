@@ -8,6 +8,8 @@
 void testApp::setup(){
 	// TODO: test maximum length (frames) and resolution of videos
 
+	ofBackground(0,0,0);
+
 	// read video
 	ofVideoPlayer player;
 	string filename = "test.mov";
@@ -19,7 +21,7 @@ void testApp::setup(){
 	ofPixelFormat pformat = player.getPixelFormat();
 	if (pformat != OF_PIXELS_RGB)
 	{
-		// warn?
+		// only rgb formatted videos supported. warn?
 	}
 
 	// initialize VDS
@@ -31,11 +33,10 @@ void testApp::setup(){
 	int vds_index = 0;
 	float max = sqrt((255.0*255.0) *3); // Maximum intensity value
 	float min = 0;						// Minimum intensity value
-	float range = max - min;			
-	//float mid = (max + min) / 2.0;
-
-
-	/*while (!player.getIsMovieDone())
+	float range = max - min;	
+	
+	// calculate intensity image, save into vds buffer
+	/*while (!player.getIsMovieDone()) // seems not to be reliable
 	{*/
 	for (int f=0; f < vds.frames; f++) 
 	{
@@ -75,6 +76,8 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	ofDrawBitmapString("Press ./, to cycle through frames", 4,18);
+
 	if (vds_frame != drawn_frame) // need to update
 	{
 		int offset = vds_frame * vds.width * vds.height;
@@ -88,7 +91,7 @@ void testApp::draw(){
 
 		drawn_frame = vds_frame;
 	}
-	frame_img.draw(0,0, vds.width, vds.height);
+	frame_img.draw(0,32, vds.width, vds.height);
 }
 
 //--------------------------------------------------------------
