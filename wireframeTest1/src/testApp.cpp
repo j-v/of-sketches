@@ -154,11 +154,8 @@ void testApp::setup(){
 	offset_attrib = shader.getAttributeLocation("u_offset");
 	shader.setUniform2f("u_offset", 0.0,0.0);
 	
-	//shader.setUniformMatrix4f("projectionMatrix", projMatrix);
 	shader.begin();
 	shader.setUniform1f("u_scale", 1.0);
-	//GLfloat proj_mat[16], mv_mat[16];
-	//BuildPerspProjMat(proj_mat, 45,1.0,0.0625,256.0);
 	update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
@@ -168,34 +165,10 @@ void testApp::setup(){
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(mv_mat);
 
-	//// ZED
-	//// make vertex buffer
-	//static const GLfloat g_vertex_buffer_data[] = { 
-	//	-0.5f, 0.0f, 0.5f,
-	//	 0.5f, 0.0f, 0.5f,
-	//	-0.5f,  0.0f, -0.5f,
-	//	 0.5f,  0.0f, -0.5f }; 
-
-
-	//// make element buffer
-	//static const GLushort g_element_buffer_data[] = { 0, 1, 2, 3};//,4,5,6,7,8,9,10,11 };
-
 	// init GL buffers
 	glGenBuffers(1, &vertexBuffer);
 	glGenBuffers(1, &elementBuffer);
 
-	//generateGrid();
-
-
-	
-	// projection matrix
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	////glFrustum(-2,2,-2,2,2,9);      // Left=-2, Right=2, Bottom=-2, Top=2, Near=0, Far=9
-	//gluPerspective(45, 1,0.1,100);
-	////GLfloat projMatrix[16];
-	//glMatrixMode(GL_MODELVIEW);
-	//glGetFloatv(GL_PROJECTION, projMatrix);
 }
 
 //--------------------------------------------------------------
@@ -288,15 +261,8 @@ void testApp::draw(){
 	//str += ofToString(ofGetFrameRate(), 2) + "fps"; 
 	//ofDrawBitmapStringHighlight(str, 0, 0);	
 	//ofDrawBitmapStringHighlight("Test", 20, 10);
-	//// in the h file:
-	//ofTrueTypeFont myfont; 
-	//// in setup:
-	//myfont.loadFont("verdana.ttf", 32, true, false, true); 
-	//// in draw:
-	//myfont.drawString("hi!!", 100,100);
-	//myfont.drawStringAsShapes("hello", 50, 50);
 
-	// print framerate to stdout every second
+	// instead print framerate to stdout every second
 	static unsigned long long last_fps_tick = 0;
 	
 	if (cur_time > last_fps_tick + 1000)
@@ -520,7 +486,7 @@ void testApp::saveFrameFBO(string filename, int width, int height)
 
 void testApp::saveFrameMultiFBO(string filename, int width, int height)
 {
-	// TODO change these values, maybe 2000
+	// TODO change these values, maybe 2000  -- or at least screen size (might have problems with current code if higher)
 	int MAX_FBO_WIDTH = 500;
 	int MAX_FBO_HEIGHT = 500;
 
