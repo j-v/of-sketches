@@ -2,7 +2,7 @@
 
 #include "ofMain.h"
 
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
 #define uint unsigned int
 
