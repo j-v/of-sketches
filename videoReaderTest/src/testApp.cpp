@@ -60,6 +60,11 @@ void testApp::setup(){
 		player.nextFrame();
 	}
 
+	// Not stopping the movie can cause a deadlock with QTKit on mac
+	player.stop();
+    player.closeMovie();
+    player.close();
+
 	cout << "Loaded VDS" << endl;
 
 	vds_frame = 0;
