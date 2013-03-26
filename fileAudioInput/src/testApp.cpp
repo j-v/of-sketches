@@ -43,6 +43,7 @@ void testApp::setup(){
 	sample.load(sample_file);
 	cout << "Sample loaded." << endl;
 	sample.setLooping(true);
+	
 
 	deviceID = -1; // using default deviceID
 
