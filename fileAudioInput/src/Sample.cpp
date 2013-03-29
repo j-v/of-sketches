@@ -64,6 +64,8 @@ double Sample::play() {
             return 0;
 	    }
 	}
+	//DWORD threadid = GetCurrentThreadId();
+	//cout << "play:" << threadid << endl;
 
 //	output = (double) (buffer[1+(long)position])/32767;//no interpolation
 	output = (double) ((1-remainder) * buffer[1+ (long) position] + remainder * buffer[2+(long) position])/32767;//linear interpolation
@@ -85,6 +87,7 @@ double Sample::play(double speed) {
             return 0;
 	    }
 	}
+
 
 	remainder = position - (long) position;
 	x=(3*((buffer[1+(long)position]-buffer[2+(long)position])-(buffer[(long)position]-buffer[3+(long)position])))*0.5;

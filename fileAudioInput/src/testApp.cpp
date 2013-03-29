@@ -53,7 +53,8 @@ void testApp::setup(){
 
 	soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
 
-	
+	//DWORD threadid = GetCurrentThreadId();
+	//cout << threadid << endl;
 }
 
 //--------------------------------------------------------------
@@ -63,6 +64,9 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+	DWORD threadid = GetCurrentThreadId();
+	cout <<"draw " << threadid << endl;
+
 	ofSetColor(0, 255, 0);
 	ofNoFill();
 
@@ -244,7 +248,8 @@ void testApp::dragEvent(ofDragInfo dragInfo){
 
 void testApp::audioRequested 	(float * output, int bufferSize, int nChannels){
 	float vol = 0.0;
-
+	//DWORD threadid = GetCurrentThreadId();
+	//cout <<"audio:" << threadid << endl;
 	// Get next samples from audio file and measure the volume
 
 	for (int i=0; i<bufferSize; i++)
