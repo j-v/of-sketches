@@ -43,7 +43,7 @@ static void buffer_data(GLuint buffer, GLenum target, const void *buffer_data, G
 	glBindBuffer(target, buffer);
 	//glBufferData(target, buffer_size, NULL, GL_DYNAMIC_DRAW); // Invalidate buffer
 	glBufferData(target, buffer_size, buffer_data, GL_DYNAMIC_DRAW);
-	
+	glBindBuffer(target, 0);
 }
 
 
@@ -156,16 +156,16 @@ void testApp::setup(){
 	offset_attrib = shader.getAttributeLocation("u_offset");
 	shader.setUniform2f("u_offset", 0.0,0.0);
 	
-	shader.begin();
+	//shader.begin();
 	shader.setUniform1f("u_scale", 1.0);
 	update_p_matrix(proj_mat, screen_width, screen_height);
 	update_mv_matrix(mv_mat, 0);
 	/*shader.setUniformMatrix4f("u_proj_matrix", proj_mat);
 	shader.setUniformMatrix4f("u_mv_matrix", mv_mat);*/
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(proj_mat);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(mv_mat);
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadMatrixf(proj_mat);
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadMatrixf(mv_mat);
 
 	// init GL buffers
 	glGenBuffers(1, &vertexBuffer);
@@ -208,10 +208,15 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
 
+
+	ofDrawBitmapString("Test", 10,10);
+	
 	unsigned long long cur_time = ofGetSystemTime();
 
 	
 	bufferGrid();
+
+	ofDrawBitmapString("Test3", 10,50);
 	static bool mat_init = false;
 	if (!mat_init)
 	{
@@ -220,16 +225,24 @@ void testApp::draw(){
 		update_mv_matrix(mv_mat, 0);
 		mat_init = true;
 	}
+
+	// Need to push proj and modelview matrices b4 drawing mesh, then pop after, to be able to draw text afterwards
 	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
 	glLoadMatrixf(proj_mat);
 	glMatrixMode(GL_MODELVIEW);
 
+	shader.begin();
+	shader.setUniform2f("u_offset", 0.0,0.0);
+	shader.setUniform1f("u_scale", 1.0);
+
+	glPushMatrix();
 	look();
-	
-	//shader.begin();
+	ofDrawBitmapString("Test2", 10,30);
 	
 	// QUADS
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // makes it draw in wireframe mode
+
 	//glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	//// use custom attribute
 	//glVertexAttribPointer(
@@ -243,6 +256,8 @@ void testApp::draw(){
 	//glEnableVertexAttribArray(vert_3d_attrib);
 
 	// use built-in gl_Vertex attribute
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
 	glVertexPointer(3,GL_FLOAT,sizeof(GLfloat)*3,(void*)0);
 	glEnableClientState(GL_VERTEX_ARRAY);
     
@@ -254,13 +269,36 @@ void testApp::draw(){
         GL_UNSIGNED_SHORT,  /* type */
         (void*)0            /* element array buffer offset */
     );
+	
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+	//
 
 	//glDisableVertexAttribArray(vert_3d_attrib);
 
-	//shader.end();
+	shader.end();
+
+	//glEnableClientState(GL_VERTEX_ARRAY);
 	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
 	// show fps
+	string str = "framerate: ";                       
+	str += ofToString(ofGetFrameRate(), 2) + "fps"; 
+	ofDrawBitmapString(str, 20, 20);
+	ofDrawBitmapString("HELLLOO", 40,40);
+
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	// PROBLEM - using my own low level opengl calls seems to cause a problem with
 	// openframeworks own text drawing 
 	//string str = "framerate: ";                       
@@ -432,7 +470,9 @@ void testApp::look()
 	//mat4 m_v = translation * rotation;
 	mat4 m_v =  rotation * translation;
 	
+	
 	glMatrixMode(GL_MODELVIEW);
+	//ofPushMatrix();
 	glLoadMatrixf(value_ptr(m_v));
 }
 
