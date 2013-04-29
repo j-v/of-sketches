@@ -158,7 +158,7 @@ void testApp::keyPressed(int key){
 		int sample_rate = 44100;
 		int n_buffers = 4; // number of buffers (for latency)
 		soundStream->setup(this, out_channels, in_channels, sample_rate, bufferSize, n_buffers);
-		soundStream->start();
+		soundStream->start();	
 	}
 	else if (key == (int)'.')
 	{

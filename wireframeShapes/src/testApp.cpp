@@ -52,8 +52,8 @@ void testApp::generatePlane()
 	float x_step = 1.0 / (float)(x_res - 1);
 	float z_step = 1.0 / (float)(z_res - 1);
 	v_buffer_size = x_res * z_res * 3;
-	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3
-	for (uint i = 0; i < x_res; i++) 
+	g_vertex_buffer_data = new GLfloat[v_buffer_size]; // TODO try vec4 instead of vec3 ?
+	for (uint i = 0; i < x_res; i++) {
 		for (uint j = 0; j < z_res; j++) {
 			uint base_index = (i*3) + 3*j*x_res;
 			g_vertex_buffer_data[base_index] = -0.5f + i * x_step;
@@ -61,6 +61,7 @@ void testApp::generatePlane()
 			//g_vertex_buffer_data[base_index + 1] = rand_float(-0.01, 0.01);
 			g_vertex_buffer_data[base_index + 2] = -0.5 + j * z_step;
 		}
+	}
 
 
 	// element buffer - GL_QUADS
@@ -399,7 +400,7 @@ void testApp::look()
 						0,	0,	1,	0,
 						-theCamera.position.x,	-theCamera.position.y,	-theCamera.position.z,	1);
 	mat4 m_v =  rotation * translation;
-	
+		
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(value_ptr(m_v));
 }
