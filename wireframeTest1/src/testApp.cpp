@@ -550,25 +550,34 @@ void testApp::saveFrameFBO(string filename, int width, int height)
 // TODO doesn't center the shape properly when width and height are smaller than screen dimensions
 void testApp::saveFrameMultiFBO(string filename, int width, int height)
 {
-	// TODO change these values, maybe 2000  -- or at least screen size (might have problems with current code if higher)
-	int MAX_FBO_WIDTH = 500;
-	int MAX_FBO_HEIGHT = 500;
+	// these dims need to be multiples of screen dimensions, for now
+	// making it independent of screen dims would involve 2d float u_scale uniform in shader
+	int MAX_FBO_WIDTH = screen_width*2;
+	int MAX_FBO_HEIGHT = screen_height*2;
 
 	ofImage output_img;
 	output_img.allocate(width, height, OF_IMAGE_COLOR);
 
 	// set the scale -- assume we kept width/height ratio with the screen
-	float ratio = (float)width / (float)screen_width;
+	int num_y_axis_fbos = (int)ceilf((float)height / (float)MAX_FBO_HEIGHT);
+	float ratio = ((float)height / (float)MAX_FBO_HEIGHT );
+	//float ratio = (float)width / (float)screen_width;
 
-	double offset_ratio_x = 2.0 / (double)screen_width;
-	double offset_ratio_y = 2.0 / (double)screen_height;
+	/*double offset_ratio_x = 2.0 / (double)screen_width;
+	double offset_ratio_y = 2.0 / (double)screen_height;*/
+	double offset_ratio_x = 2.0 / (double)MAX_FBO_WIDTH;
+	double offset_ratio_y = 2.0 / (double)MAX_FBO_HEIGHT;
 
 	shader.begin();
 	
 	shader.setUniform1f("u_scale", ratio);
 
 	ofFbo fbo;
-	fbo.allocate(screen_width, screen_height); 
+	/*fbo.allocate(screen_width, screen_height); */
+	fbo.allocate(MAX_FBO_WIDTH, MAX_FBO_HEIGHT); 
+
+	float x_center = (float)width / (float)MAX_FBO_WIDTH;
+	float y_center = (float)height / (float)MAX_FBO_HEIGHT;
 
 	float x =0;
 	while (x < width)
@@ -577,9 +586,17 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 		while (y < height)
 		{
 			// set the offset
-			shader.setUniform2f("u_offset",
+			/*shader.setUniform2f("u_offset",
 				(x - floorf(width /2.0)) * -offset_ratio_x - 1.0,
-				(y - floorf(height/2.0)) * -offset_ratio_y - 1.0 );
+				(y - floorf(height/2.0)) * -offset_ratio_y - 1.0 );*/
+			float frame_x_center = (x/MAX_FBO_WIDTH)*2 + 1;
+			float frame_y_center = (y/MAX_FBO_HEIGHT)*2 + 1;
+			/*shader.setUniform2f("u_offset",
+				((float)num_y_axis_fbos/2.0)-(x/MAX_FBO_WIDTH)*2,
+				((float)num_y_axis_fbos/2.0)-(y/MAX_FBO_HEIGHT)*2 );*/
+			shader.setUniform2f("u_offset",
+				x_center - frame_x_center,
+				y_center - frame_y_center );
 			
 			// start fbo
 			fbo.begin();
@@ -595,7 +612,7 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 			// get pixels
 			ofImage img_part;
 			int fbo_width = std::min((int)(width - x), MAX_FBO_WIDTH);
-			int fbo_height = std::min((int)(height - y), MAX_FBO_WIDTH);
+			int fbo_height = std::min((int)(height - y), MAX_FBO_HEIGHT);
 
 			img_part.allocate(fbo_width, fbo_height, OF_IMAGE_COLOR);
 			unsigned char * pixels = img_part.getPixels();
