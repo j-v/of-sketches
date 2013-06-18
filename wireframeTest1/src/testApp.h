@@ -52,6 +52,8 @@ private:
 
 	bool move_camera;
 
+	void innerDraw();
+
 
 	GLfloat *g_vertex_buffer_data;
 	GLushort *g_element_buffer_data;

@@ -205,38 +205,14 @@ void testApp::update(){
 
 }
 
-//--------------------------------------------------------------
-void testApp::draw(){
+
+void testApp::innerDraw()
+{
+	// model view and projection matrices must already be loaded before calling
 
 
-	ofDrawBitmapString("Test", 10,10);
-	
-	unsigned long long cur_time = ofGetSystemTime();
-
-	
 	bufferGrid();
 
-	ofDrawBitmapString("Test3", 10,50);
-	static bool mat_init = false;
-	if (!mat_init)
-	{
-		// not sure why this part is necessary as we init'd proj and mv matrices in setup()
-		update_p_matrix(proj_mat, screen_width, screen_height);
-		update_mv_matrix(mv_mat, 0);
-		mat_init = true;
-	}
-
-	// Need to push proj and modelview matrices b4 drawing mesh, then pop after, to be able to draw text afterwards
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadMatrixf(proj_mat);
-	glMatrixMode(GL_MODELVIEW);
-
-	shader.begin();
-	shader.setUniform2f("u_offset", 0.0,0.0);
-	shader.setUniform1f("u_scale", 1.0);
-
-	glPushMatrix();
 	look();
 	ofDrawBitmapString("Test2", 10,30);
 	
@@ -280,10 +256,51 @@ void testApp::draw(){
 
 	//glDisableVertexAttribArray(vert_3d_attrib);
 
-	shader.end();
+	//shader.end();
 
 	//glEnableClientState(GL_VERTEX_ARRAY);
 	
+
+
+
+}
+
+//--------------------------------------------------------------
+void testApp::draw(){
+	static bool mat_init = false;
+	if (!mat_init)
+	{
+		// not sure why this part is necessary as we init'd proj and mv matrices in setup()
+		update_p_matrix(proj_mat, screen_width, screen_height);
+		update_mv_matrix(mv_mat, 0);
+		mat_init = true;
+	}
+
+	// Need to push proj and modelview matrices b4 drawing mesh, then pop after, to be able to draw text afterwards
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadMatrixf(proj_mat);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	ofDrawBitmapString("Test", 10,10);
+	
+	unsigned long long cur_time = ofGetSystemTime();
+
+	
+	
+
+	ofDrawBitmapString("Test3", 10,50);
+
+
+	shader.begin();
+	shader.setUniform2f("u_offset", 0.0,0.0);
+	shader.setUniform1f("u_scale", 1.0);
+
+	innerDraw();
+
+	shader.end();
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
@@ -545,14 +562,10 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 
 	double offset_ratio_x = 2.0 / (double)screen_width;
 	double offset_ratio_y = 2.0 / (double)screen_height;
+
+	shader.begin();
 	
 	shader.setUniform1f("u_scale", ratio);
-
-	// set projection matrix
-	glMatrixMode(GL_PROJECTION);
-	update_p_matrix(proj_mat, width, height);
-	glLoadMatrixf(proj_mat);
-	glMatrixMode(GL_MODELVIEW);
 
 	ofFbo fbo;
 	fbo.allocate(screen_width, screen_height); 
@@ -568,11 +581,16 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 				(x - floorf(width /2.0)) * -offset_ratio_x - 1.0,
 				(y - floorf(height/2.0)) * -offset_ratio_y - 1.0 );
 			
-			// draw to fbo
+			// start fbo
 			fbo.begin();
 			glClearColor(0,0,0,1);
 			glClear(GL_COLOR_BUFFER_BIT);
-			draw();
+			// projection matrix
+			glMatrixMode(GL_PROJECTION);
+			update_p_matrix(proj_mat, width, height);
+			glLoadMatrixf(proj_mat);
+			glMatrixMode(GL_MODELVIEW);
+			innerDraw();
 
 			// get pixels
 			ofImage img_part;
@@ -583,7 +601,7 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 			unsigned char * pixels = img_part.getPixels();
 			glReadPixels(0, MAX_FBO_HEIGHT-fbo_height, fbo_width, fbo_height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 			img_part.mirror(true, false);
-			//img_part.saveImage("part.png"); // debugging : save the image part
+			img_part.saveImage("part.png"); // debugging : save the image part
 
 			// end fbo
 			fbo.end();
@@ -607,6 +625,8 @@ void testApp::saveFrameMultiFBO(string filename, int width, int height)
 
 	shader.setUniform2f("u_offset",0,0);
 	shader.setUniform1f("u_scale", 1.0);
+
+	shader.end();
 
 	// reset modelview matrix
 	update_p_matrix(proj_mat, screen_width, screen_height);
